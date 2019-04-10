@@ -14,22 +14,19 @@ def add_task():
 	task = Task(title=request.form['title'],
 				deadline=request.form['deadline'],
 				description=request.form['description'])
-	#user_id = current_user.id
 	current_user.add_task(task)
-	#todolist = user.get_todolist()
-	return task.get_resp() # returns task id
+	return task.get_resp()
 	
 	
 @app.route('/modifytask', methods=['POST'])
 @login_required
 def modify_task():
-	#task = Task.get(user_id=current_user.id, task_id=request.form['task_id'])
 	task = current_user.get_task(request.form['task_id'])
 	if task:
 		if 'title' in request.form: task.modify_title(request.form['title'])
 		if 'deadline' in request.form: task.modify_deadline(request.form['deadline'])
 		if 'description' in request.form: task.modify_description(request.form['description'])
-		return Validity(True).get_resp() #TODO: modifying succeeded
+		return Validity(True).get_resp()
 	else:
 		return Validity(False, 'Invalid task id').get_resp()
 
@@ -46,7 +43,7 @@ def delete_task():
 @login_required
 def finish_task():
 	if current_user.finish_task(request.form['task_id']):
-		return Validity(True).get_resp() #TODO: submission succeeded
+		return Validity(True).get_resp()
 	else :
 		return Validity(False, 'Invalid task id').get_resp()
 	
@@ -60,20 +57,20 @@ def refresh_todolist():
 
 @app.route('/login', methods=['POST'])
 def login():
-	user = User.get(username=request.form['username'], password=request.form['password'])
-	if user:
-		login_user(user)
-		todolist = user.get_todolist()
+	user_id = User.get_id(username=request.form['username'], password=request.form['password'])
+	if user_id:
+		login_user(user_id)
+		todolist = current_user.get_todolist()
 		return todolist.get_resp()
 	else:
-		return Validity(False, 'Invalid username or password.').get_resp() #TODO: login invalid username or passwd
+		return Validity(False, 'Invalid username or password.').get_resp()
 
 
 @app.route('/logout')
 @login_required
 def logout():
 	logout_user()
-	return Validity(True).get_resp() #TODO: logout succeeded
+	return Validity(True).get_resp()
 
 
 @login_manager.user_loader
