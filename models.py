@@ -16,39 +16,8 @@ class User(UserMixin):
 	# args: user_id
 	def get(user_id):
 		pass # TODO: implement this function
-	
-	# args: user_id
-	# rets: todolist
-	def get_todolist():
-		pass # TODO: implement this function
-		
-	# args: task_id
-	# rets: task
-	def get_task():
-		pass # TODO: implement this function
 
-	# Adds a task to this user's todolist
-	# args: task
-	def add_task():
-		pass # TODO: implement this function
-	
-	# Deletes a task from user's todolist
-	# args: task_id
-	# rets: True if task_id is valid and user has authority, else False
-	def delete_task():
-		pass # TODO: implement this function
-		
-	# Sets task as finished 
-	# args: task_id
-	# rets: True if task_id is valid and user has authority, else False
-	def finish_task():
-		pass # TODO: implement this function
 
-class TodoList:
-	# rets: a json string of todolist, valid = True
-	def get_resp():
-		pass # TODO: implement this function
-	
 class Validity:
 	# args: valid
 	def __init__(valid = False,
@@ -66,8 +35,25 @@ class Validity:
 class Task:
 	# title, deadline, desciption, task_id, user_id(maybe)
 	
+	def __init__(user_id, title, deadline, description):
+		pass
+	
+	# rets: a json string of all tasks belonging to user
+	def get_todolist_resp(user_id):
+		pass
+						
 	# Generates response including task id, valid = True
 	def get_resp():
+		pass
+		
+	# returns NULL if task_id is invalid.
+	def get_task(user_id, task_id):
+		pass
+		
+	def delete_task(user_id, task_id):
+		pass
+	
+	def finish_task(user_id, task_id):
 		pass
 	
 	def modify_title():
