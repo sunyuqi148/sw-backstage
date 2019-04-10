@@ -11,17 +11,17 @@ login_manager.init_app(app)
 @app.route('/addtask', methods=['POST'])
 @login_required
 def add_task():
-	task = Task(title=request.form['title'],
+	task = Task(user_id=current_user.id,
+				title=request.form['title'],
 				deadline=request.form['deadline'],
 				description=request.form['description'])
-	current_user.add_task(task)
 	return task.get_resp()
 	
 	
 @app.route('/modifytask', methods=['POST'])
 @login_required
 def modify_task():
-	task = current_user.get_task(request.form['task_id'])
+	task = Task.get_task(user_id=current_user.id, task_id=request.form['task_id'])
 	if task:
 		if 'title' in request.form: task.modify_title(request.form['title'])
 		if 'deadline' in request.form: task.modify_deadline(request.form['deadline'])
@@ -33,7 +33,7 @@ def modify_task():
 @app.route('/deletetask', methods=['POST'])
 @login_required
 def delete_task():
-	if current_user.delete_task(request.form['task_id']):
+	if Task.delete_task(user_id=current_user.id, task_id=request.form['task_id']):
 		return Validity(True).get_resp()
 	else :
 		return Validity(False, 'Invalid task id').get_resp()
@@ -42,17 +42,16 @@ def delete_task():
 @app.route('/finishtask', methods=['POST'])
 @login_required
 def finish_task():
-	if current_user.finish_task(request.form['task_id']):
+	if Task.finish_task(user_id=current_user.id, task_id=request.form['task_id']):
 		return Validity(True).get_resp()
 	else :
 		return Validity(False, 'Invalid task id').get_resp()
 	
 	
-@app.route('/refresh_todolist', methods=['POST'])
+@app.route('/refresh_todolist')
 @login_required
 def refresh_todolist():
-	todolist = current_user.get_todolist()
-	return todolist.get_resp()
+	return Task.get_todolist_resp(current_user.id)
 
 
 @app.route('/login', methods=['POST'])
@@ -60,8 +59,7 @@ def login():
 	user_id = User.get_id(username=request.form['username'], password=request.form['password'])
 	if user_id:
 		login_user(user_id)
-		todolist = current_user.get_todolist()
-		return todolist.get_resp()
+		return Task.get_todolist_resp(user_id)
 	else:
 		return Validity(False, 'Invalid username or password.').get_resp()
 
