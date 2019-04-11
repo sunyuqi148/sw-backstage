@@ -17,6 +17,16 @@ class User(UserMixin):
 	def get(user_id):
 		pass # TODO: implement this function
 
+	# rets: user_id (if valid)
+	#       False (if invalid)
+	def register_user(username, password):
+		pass
+
+	# rets: json map includes valid=true and user_id
+	def get_resp():
+		pass
+		
+		
 
 class Validity:
 	# args: valid
