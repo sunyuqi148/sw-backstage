@@ -74,6 +74,15 @@ def logout():
 @login_manager.user_loader
 def load_user(user_id):
 	return User.get(user_id=user_id)
+	
+
+@app.route('register', methods=['POST'])
+def register():
+	user_id = User.register_user(username=request.form['username'], password=request.form['password'])
+	if user_id:
+		return User.get_resp(user_id)
+	else:
+		return Validity(False, 'Username already exists or invalid password.').get_resp()
 
 
 if __name__ == "__main__":
