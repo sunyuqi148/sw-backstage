@@ -26,7 +26,23 @@ class User(UserMixin):
 	def get_resp():
 		pass
 		
+	def get_friendlist_resp():
+		pass
 		
+	# rets: user_id of friend, if the username exists
+	#       False, if username is invalid
+	def get_friend_id(username):
+		pass
+		
+	# rets: False if friend_id is already a friend of user
+	#       True, else
+	def add_friend(user_id, friend_id):
+		pass
+		
+	# rets: False if user does not have this friend
+	#       True, else
+	def delete_friend(user_id, friend_id):
+		pass
 
 class Validity:
 	# args: valid

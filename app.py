@@ -8,6 +8,37 @@ app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+
+@app.route('/addfriend', methods=['POST'])
+@login_required
+def add_friend():
+	friend_id = User.get_friend_id(username=request.form['friend_username'])
+	if friend_id:
+		if not User.add_friend(user_id=current_user.id, friend_id=friend_id):
+			return Validity(False, 'Friend already exists in your friend list.').get_resp()
+		return User.get_friendlist_resp(user_id=current_user.id)
+	else:
+		return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
+
+
+@app.route('/getfriend', methods=['GET'])
+@login_required
+def get_friend():
+	return User.get_friendlist_resp(user_id=current_user.id)
+
+
+@app.route('/delete_friend', methods=['POST'])
+@login_required
+def delete_friend():
+	friend_id = User.get_friend_id(username=request.form['friend_username'])
+	if friend_id:
+		if not User.delete_friend(user_id=current_user.id, friend_id=friend_id)
+			return Validity(False, 'Invalid friend id.').get_resp()
+		return Validity(True).get_resp()
+	else:
+		return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
+
+
 @app.route('/addtask', methods=['POST'])
 @login_required
 def add_task():
