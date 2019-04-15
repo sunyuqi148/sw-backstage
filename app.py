@@ -1,9 +1,19 @@
 from flask import (Flask, request)
 from flask import json
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+from flask_sqlalchemy import SQLAlchemy
+
 from models import User, Task, TodoList, Validity
 
 app = Flask(__name__)
+
+SECRET_KEY = 'This is my key'
+app.secret_key = SECRET_KEY
+
+db = SQLAlchemy()
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+db.init_app(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -32,7 +42,7 @@ def get_friend():
 def delete_friend():
 	friend_id = User.get_friend_id(username=request.form['friend_username'])
 	if friend_id:
-		if not User.delete_friend(user_id=current_user.id, friend_id=friend_id)
+		if not User.delete_friend(user_id=current_user.id, friend_id=friend_id):
 			return Validity(False, 'Invalid friend id.').get_resp()
 		return Validity(True).get_resp()
 	else:

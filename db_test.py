@@ -5,7 +5,7 @@ Created on Mon Apr 15 19:57:39 2019
 @author: 38192
 """
 
-from flask import Flask
+from flask import (Flask, request)
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 
@@ -38,7 +38,8 @@ def hello():
     db.session.commit()
     user = User.query.filter_by(username='sample_user').first()
     if user:
-        print(user)
+        print(user.username)
+        print(user.password)
     return "Hello World!"
     
 #    return "Hello World!"
