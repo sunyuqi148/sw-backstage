@@ -24,17 +24,17 @@ class User(UserMixin, db.Model):
         self.username = username
         self.password = password
         
-#    def get_id(self, username):
-#        return self.id
+    def get_id(self):
+        return self.id
 	
-	# args: user_id
-    def get(user_id):
-        pass # TODO: implement this function
+#	# args: user_id
+#    def get(user_id):
+#        pass # TODO: implement this function
 
 	# rets: user_id (if valid)
 	#       False (if invalid)
-    def register_user(username, password):
-        pass
+#    def register_user(username, password):
+#        pass
 
 	# rets: json map includes valid=true and user_id
     def get_resp():

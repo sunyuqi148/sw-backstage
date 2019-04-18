@@ -8,6 +8,7 @@ from flask_login import login_required, login_user, logout_user, current_user
 
 from ext import db, login_manager
 from models import User, Task, Validity
+from utils import validate_username
 
 app = Flask(__name__)
 
@@ -97,13 +98,34 @@ def refresh_todolist():
     return Task.get_todolist_resp(current_user.id)
 
 
+import random
+@app.route('/register', methods=['GET','POST'])
+def register():
+    username='zhanghaix'+str(random.randint(0,500))
+    if not validate_username(username):
+        return 'username already exists!'
+    password='zhanghaix'
+    user = User(username=username, password=password)
+    db.session.add(user)
+    db.session.commit()
+    login_user(user, remember=True)
+    next = request.args.get('next')
+    return redirect(next or url_for('index'))
+#    return redirect(url_for('index'))
+#    user_id = User.register_user(username=request.form['username'], password=request.form['password'])
+#    if user_id:
+#        return User.get_resp(user_id)
+#    else:
+#        return Validity(False, 'Username already exists or invalid password.').get_resp()
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    user = User.query.filter_by(username='admin', password='admin').first()
+    user = User.query.filter_by(username='zhanghaix', password='zhanghaix').first()
     if user:
         login_user(user, remember=True)
         next = request.args.get('next')
-        return redirect(next or url_for('login_check'))
+        return redirect(next or url_for('index'))
     else:
         return 'Login failed!'
 #    user_id = User.get_id(username=request.form['username'], password=request.form['password'])
@@ -114,18 +136,17 @@ def login():
 #        return Validity(False, 'Invalid username or password.').get_resp()
 
 
-# Temporary method used for debug
-@app.route('/login_check')
+@app.route('/index', methods=['GET'])
 @login_required
-def login_check():
-    return current_user.username
+def index():
+    return 'you have logined as ' + current_user.username
 
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-#    return 'logout successfully'
+    flash("???", category='warning')
     return redirect(url_for('login'))
 #    return Validity(True).get_resp()
 
@@ -133,19 +154,8 @@ def logout():
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.filter_by(id=int(user_id)).first()
-	
-
-@app.route('/register', methods=['GET','POST'])
-def register():
-    pass # TODO
-#    user_id = User.register_user(username=request.form['username'], password=request.form['password'])
-#    if user_id:
-#        return User.get_resp(user_id)
-#    else:
-#        return Validity(False, 'Username already exists or invalid password.').get_resp()
 
 
 if __name__ == "__main__":
-    db.create_all()
     app.run(host='0.0.0.0', port=5000, debug=True)
     
