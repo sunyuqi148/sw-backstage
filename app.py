@@ -7,8 +7,10 @@ from flask_login import login_required, login_user, logout_user, current_user
 #from flask_sqlalchemy import SQLAlchemy
 
 from ext import db, login_manager
-from models import User, Task, Validity
+from models import User, Group, Task, Validity
 from utils import validate_username
+
+import datetime
 
 app = Flask(__name__)
 
@@ -18,9 +20,12 @@ app.secret_key = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
+db.drop_all(app=app)
+db.create_all(app=app)
 
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
 
 @app.route('/addfriend', methods=['POST'])
 @login_required
@@ -107,6 +112,7 @@ def index():
 import random # Only for test @_@
 @app.route('/register', methods=['GET','POST'])
 def register():
+    print("register called")
     username='zhanghaix'+str(random.randint(0,500)) # Only for test @_@
     if not validate_username(username):
         return 'username already exists!'
@@ -116,7 +122,7 @@ def register():
     db.session.commit()
     login_user(user, remember=True)
     next = request.args.get('next')
-    return redirect(next or url_for('index'))
+    return redirect(next or url_for('login'))
 #    return redirect(url_for('index'))
 #    user_id = User.register_user(username=request.form['username'], password=request.form['password'])
 #    if user_id:
@@ -154,7 +160,33 @@ def logout():
 def load_user(user_id):
     return User.query.filter_by(id=int(user_id)).first()
 
+@app.route('/', methods=['GET', 'POST'])
+def test():
+    user = User(username='admin', password='admin')
+    db.session.add(user)
+    user = User(username='admin1', password='admin1')
+    db.session.add(user)
+    user = User(username='admin2', password='admin2')
+    db.session.add(user)
+#    db.session.commit()
+    task = Task(1, 'ok', datetime.datetime.now())
+    db.session.add(task)
+    task = Task(1, 'ok1', datetime.datetime.now())
+    db.session.add(task)
+    db.session.commit()
+#    group = Group('test_group', 1)
+    user1 = User.query.filter_by(id=1).first()
+    user2 = User.query.filter_by(id=2).first()
+    user3 = User.query.filter_by(id=3).first()
+    user1.friends.extend([user2,user3])
+    db.session.commit()
+    print(User.query.filter_by(id=1).first().friends)
+    print(User.query.filter_by(id=2).first().friends)
+#    print(user.tasks)
+    return 'successful!'
+
+
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
     
