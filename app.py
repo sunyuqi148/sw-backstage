@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from flask import (Flask, request, flash, redirect, url_for)
+from flask import (Flask, request)
 from flask import json
 from flask_login import login_required, login_user, logout_user, current_user
-#from flask_sqlalchemy import SQLAlchemy
 
 from ext import db, login_manager
 from models import User, Group, Task, Validity
@@ -20,14 +19,21 @@ app.secret_key = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
-db.drop_all(app=app)
+#db.drop_all(app=app)
 db.create_all(app=app)
 
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
-@app.route('/addfriend', methods=['POST'])
+# Update the info of current user
+@app.route('/update_info', methods=['POST'])
+@login_required
+def update_info():
+    pass # TODO
+
+
+@app.route('/add_friend', methods=['POST'])
 @login_required
 def add_friend():
     friend_id = User.get_friend_id(username=request.form['friend_username'])
@@ -39,10 +45,23 @@ def add_friend():
         return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
 
 
-@app.route('/getfriend', methods=['GET'])
+@app.route('/get_friendlist', methods=['GET'])
+@login_required
+def get_friendlist():
+    return User.get_friendlist_resp(user_id=current_user.id)
+
+
+@app.route('/get_tasklist', methods=['GET'])
+@login_required
+def get_tasklist():
+    return User.get_tasklist_resp(user_id=current_user.id)
+
+
+# Get info of another user
+@app.route('/get_friend', methods=['POST'])
 @login_required
 def get_friend():
-    return User.get_friendlist_resp(user_id=current_user.id)
+    pass # TODO
 
 
 @app.route('/delete_friend', methods=['POST'])
@@ -57,9 +76,9 @@ def delete_friend():
         return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
 
 
-@app.route('/addtask', methods=['POST'])
+@app.route('/create_task', methods=['POST'])
 @login_required
-def add_task():
+def create_task():
     task = Task(user_id=current_user.id,
 				title=request.form['title'],
 				deadline=request.form['deadline'],
@@ -67,9 +86,10 @@ def add_task():
     return task.get_resp()
 	
 	
-@app.route('/modifytask', methods=['POST'])
+# Include: get task info, finish task and update task
+@app.route('/get_task', methods=['POST'])
 @login_required
-def modify_task():
+def get_task():
     task = Task.get_task(user_id=current_user.id, task_id=request.form['task_id'])
     if task:
         if 'title' in request.form: task.modify_title(request.form['title'])
@@ -79,7 +99,8 @@ def modify_task():
     else:
         return Validity(False, 'Invalid task id').get_resp()
 
-@app.route('/deletetask', methods=['POST'])
+
+@app.route('/delete_task', methods=['POST'])
 @login_required
 def delete_task():
     if Task.delete_task(user_id=current_user.id, task_id=request.form['task_id']):
@@ -88,42 +109,64 @@ def delete_task():
         return Validity(False, 'Invalid task id').get_resp()
 
 
-@app.route('/finishtask', methods=['POST'])
-@login_required
-def finish_task():
-    if Task.finish_task(user_id=current_user.id, task_id=request.form['task_id']):
-        return Validity(True).get_resp()
-    else:
-        return Validity(False, 'Invalid task id').get_resp()
+#@app.route('/finish_task', methods=['POST'])
+#@login_required
+#def finish_task():
+#    if Task.finish_task(user_id=current_user.id, task_id=request.form['task_id']):
+#        return Validity(True).get_resp()
+#    else:
+#        return Validity(False, 'Invalid task id').get_resp()
 	
 	
-@app.route('/refresh_todolist')
+# Refreshing: check any updates on dataset and renew status of tasks
+@app.route('/refresh')
 @login_required
-def refresh_todolist():
-    return Task.get_todolist_resp(current_user.id)
+def refresh():
+    return Task.get_tasklist_resp(current_user.id)
 
 
-@app.route('/index', methods=['GET'])
+# Create a new group
+@app.route('/create_group', methods=['POST'])
 @login_required
-def index():
-    return 'you have logined as ' + current_user.username
+def create_group():
+    pass # TODO
 
 
-import random # Only for test @_@
+# Create a new group
+@app.route('/join_group', methods=['POST'])
+@login_required
+def join_group():
+    pass # TODO
+
+
+# Include: get info of a group and update info of a group
+@app.route('/get_group', methods=['POST'])
+@login_required
+def get_group():
+    pass # TODO
+
+
+# Include quit a group and delete a whole group
+@app.route('/delete_group', methods=['POST'])
+@login_required
+def delete_group():
+    pass # TODO
+
+
 @app.route('/register', methods=['GET','POST'])
 def register():
-    print("register called")
-    username='zhanghaix'+str(random.randint(0,500)) # Only for test @_@
-    if not validate_username(username):
-        return 'username already exists!'
-    password='zhanghaix'
-    user = User(username=username, password=password)
-    db.session.add(user)
-    db.session.commit()
-    login_user(user, remember=True)
-    next = request.args.get('next')
-    return redirect(next or url_for('login'))
-#    return redirect(url_for('index'))
+    if validate_username(request.form['username']):
+        user = User(username=request.form['username'],
+                    password=request.form['password'],
+                    name=request.form['name'],
+                    info=request.form['info']
+                    )
+        db.session.add(user)
+        db.session.commit()
+        login_user(user, remember=True)
+        return 'register succeeds'
+    else:
+        return 'register fails'
 #    user_id = User.register_user(username=request.form['username'], password=request.form['password'])
 #    if user_id:
 #        return User.get_resp(user_id)
@@ -133,13 +176,14 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    user = User.query.filter_by(username='zhanghaix', password='zhanghaix').first()
+    user = User.query.filter_by(username=request.form['username'],
+                                password=request.form['password']
+                                ).first()
     if user:
         login_user(user, remember=True)
-        next = request.args.get('next')
-        return redirect(next or url_for('index'))
+        return 'login succeeds'
     else:
-        return 'Login failed!'
+        return 'login fails'
 #    user_id = User.get_id(username=request.form['username'], password=request.form['password'])
 #    if user_id:
 #        login_user(user_id)
@@ -152,13 +196,14 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return 'logout succeeds'
 #    return Validity(True).get_resp()
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.filter_by(id=int(user_id)).first()
+
 
 @app.route('/', methods=['GET', 'POST'])
 def test():
@@ -184,7 +229,6 @@ def test():
     print(User.query.filter_by(id=2).first().friends)
 #    print(user.tasks)
     return 'successful!'
-
 
 
 if __name__ == "__main__":

@@ -3,6 +3,8 @@ from flask import json
 from flask_login import UserMixin
 
 from ext import db
+from utils import validate_username
+
 import datetime
 
 ## These classes should inherit flask.ext.login.UserMixin.
@@ -41,7 +43,7 @@ friendship = db.Table('friendship',
 
 # All users
 class User(UserMixin, db.Model):
-    # id, username, password, name, info, tasks, friends(!)
+    # id, username, password, name, info, tasks, friends
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(24), nullable=False,
@@ -57,7 +59,8 @@ class User(UserMixin, db.Model):
                                 lazy = 'subquery'
                             )
     
-    def __init__(self, username, password, name=None,
+    def __init__(self, username, password,
+                 name=None,
                  info=''
                  ):
         self.username = username
@@ -70,7 +73,43 @@ class User(UserMixin, db.Model):
         
     def get_id(self):
         return self.id
- 
+    
+    # rets: json map includes valid=true and user_id
+    def get_resp(self):
+        pass
+    
+    def get_friendlist_resp(self):
+        pass
+    
+    # rets: a json string of all tasks belonging to user
+    def get_tasklist_resp(self):
+        pass
+    
+    def update(self, 
+               username=None,
+               password=None,
+               name=None,
+               info=None
+               ):
+        if username is not None and validate_username(username):
+            self.username = username
+        if password is not None:
+            self.password = password
+        if name is not None:
+            self.name = name
+        if info is not None:
+            self.info = info
+
+    # rets: False if friend_id is already a friend of user
+    #       True, else
+    def add_friend(self, friend_id):
+        pass
+		
+    # rets: False if user does not have this friend
+    #       True, else
+    def delete_friend(self, friend_id):
+        pass
+        
 
 # All groups
 class Group(db.Model):
@@ -80,10 +119,12 @@ class Group(db.Model):
     name = db.Column(db.String(24), nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     info = db.Column(db.String(1024))
-    tasks = db.relationship('Task', backref='group',
+    tasks = db.relationship('Task',
+                            backref='group',
                             lazy='dynamic'
                             )
-    members = db.relationship('User', secondary=membership,
+    members = db.relationship('User',
+                              secondary=membership,
                               lazy='subquery',
                               backref=db.backref('groups', lazy=True)
                               )
@@ -92,6 +133,35 @@ class Group(db.Model):
         self.name = name
         self.owner_id = owner_id
         self.info = info
+        
+    def get_id(self):
+        return self.id
+    
+    # rets: json map includes valid=true and user_id
+    def get_resp(self):
+        pass
+    
+    def update(self, 
+               name=None,
+               owner_id=None,
+               info=None
+               ):
+        if name is not None:
+            self.name = name
+        if owner_id is not None and User.query.filter_by(id=owner_id).first():
+            self.owner_id = owner_id
+        if info is not None:
+            self.info = info
+            
+    # rets: False if friend_id is already a friend of user
+    #       True, else
+    def add_member(self, user_id):
+        pass
+		
+    # rets: False if user does not have this friend
+    #       True, else
+    def delete_member(self, user_id):
+        pass
 
 
 # All tasks (DDLs)
@@ -111,7 +181,8 @@ class Task(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
     info = db.Column(db.String(1024))
     
-    def __init__(self, owner_id, title, finish_time, status=0,
+    def __init__(self, owner_id, title, finish_time,
+                 status=0,
                  publicity=0,
                  group_id=None,
                  info=''
@@ -128,61 +199,33 @@ class Task(db.Model):
             self.group_id = None
         self.info = info
         
-        
-    #	# args: user_id
-#    def get(user_id):
-#        pass # TODO: implement this function
-
-	# rets: user_id (if valid)
-	#       False (if invalid)
-#    def register_user(username, password):
-#        pass
-
-#	# rets: json map includes valid=true and user_id
-#    def get_resp():
-#        pass
-#		
-#    def get_friendlist_resp():
-#        pass
-#		
-#	# rets: user_id of friend, if the username exists
-#	#       False, if username is invalid
-#    def get_friend_id(username):
-#        pass
-#		
-#	# rets: False if friend_id is already a friend of user
-#	#       True, else
-#    def add_friend(user_id, friend_id):
-#        pass
-#		
-#	# rets: False if user does not have this friend
-#	#       True, else
-#    def delete_friend(user_id, friend_id):
-#        pass
-#
-#	# rets: a json string of all tasks belonging to user
-#    def get_todolist_resp(user_id):
-#        pass
-#						
-#	# Generates response including task id, valid = True
-#    def get_resp():
-#        pass
-#		
-#	# returns NULL if task_id is invalid.
-#    def get_task(user_id, task_id):
-#        pass
-#		
-#    def delete_task(user_id, task_id):
-#        pass
-#	
-#    def finish_task(user_id, task_id):
-#        pass
-#	
-#    def modify_title():
-#        pass
-#	
-#    def modify_deadline():
-#        pass
-#	
-#    def modify_description():
-#        pass
+    def get_id(self):
+        return self.id
+    
+    # rets: json map includes valid=true and user_id
+    def get_resp(self):
+        pass
+    
+    def update(self, 
+               owner_id=None,
+               title=None,
+               finish_time=None,
+               status=None,
+               publicity=None,
+               group_id=None,
+               info=None
+               ):
+        if owner_id is not None and User.query.filter_by(id=owner_id).first():
+            self.owner_id = owner_id
+        if title is not None:
+            self.title = title
+        if finish_time is not None:
+            self.finish_time = finish_time
+        if status is not None:
+            self.status = status
+        if publicity is not None:
+            self.publicity = publicity
+        if self.publicity == 2 and group_id is not None:
+            self.group_id = group_id
+        if info is not None:
+            self.info = info

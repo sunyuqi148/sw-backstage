@@ -7,3 +7,4 @@ def validate_username(username):
         return False
     else:
         return True
+    
