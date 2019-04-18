@@ -98,10 +98,16 @@ def refresh_todolist():
     return Task.get_todolist_resp(current_user.id)
 
 
-import random
+@app.route('/index', methods=['GET'])
+@login_required
+def index():
+    return 'you have logined as ' + current_user.username
+
+
+import random # Only for test @_@
 @app.route('/register', methods=['GET','POST'])
 def register():
-    username='zhanghaix'+str(random.randint(0,500))
+    username='zhanghaix'+str(random.randint(0,500)) # Only for test @_@
     if not validate_username(username):
         return 'username already exists!'
     password='zhanghaix'
@@ -136,17 +142,10 @@ def login():
 #        return Validity(False, 'Invalid username or password.').get_resp()
 
 
-@app.route('/index', methods=['GET'])
-@login_required
-def index():
-    return 'you have logined as ' + current_user.username
-
-
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    flash("???", category='warning')
     return redirect(url_for('login'))
 #    return Validity(True).get_resp()
 
