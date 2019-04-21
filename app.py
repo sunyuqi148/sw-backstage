@@ -6,8 +6,8 @@ from flask import json
 from flask_login import login_required, login_user, logout_user, current_user
 
 from ext import db, login_manager
-from models import User, Group, Task, Validity
-from utils import validate_username
+from models import User, Group, Task, validate_username
+from utils import Validity
 
 import datetime
 
@@ -232,5 +232,5 @@ def test():
 
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=80, debug=False)
     

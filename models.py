@@ -3,7 +3,7 @@ from flask import json
 from flask_login import UserMixin
 
 from ext import db
-from utils import validate_username
+from utils import Validity
 
 import datetime
 
@@ -11,20 +11,6 @@ import datetime
 ## See: https://flask-login.readthedocs.io/en/latest/
 ##      or 
 ##      https://www.cnblogs.com/agmcs/p/4445428.html
-
-
-class Validity:
-	# args: valid
-    def __init__(self, valid = False,
-                     info = ''):
-        self._valid = valid
-        self._info = info
-	
-	# rets: a json string of validity
-    def get_resp(self):
-        return Response(json.dumps({'valid': self._valid,
-									'info': self._info}),
-						content_type='application/json')
 
 
 # Membership of some user for some group
@@ -229,3 +215,9 @@ class Task(db.Model):
             self.group_id = group_id
         if info is not None:
             self.info = info
+            
+def validate_username(username):
+    if User.query.filter_by(username=username).first():
+        return False
+    else:
+        return True
