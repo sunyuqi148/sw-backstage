@@ -3,7 +3,6 @@ from flask import json
 from flask_login import UserMixin
 
 from ext import db
-from utils import Validity
 
 import datetime
 
@@ -11,6 +10,20 @@ import datetime
 ## See: https://flask-login.readthedocs.io/en/latest/
 ##      or 
 ##      https://www.cnblogs.com/agmcs/p/4445428.html
+
+
+class Validity:
+	# args: valid
+    def __init__(self, valid = False,
+                     info = ''):
+        self._valid = valid
+        self._info = info
+	
+	# rets: a json string of validity
+    def get_resp(self):
+        return Response(json.dumps({'valid': self._valid,
+									'info': self._info}),
+						content_type='application/json')
 
 
 # Membership of some user for some group
@@ -71,13 +84,21 @@ class User(UserMixin, db.Model):
     def get_tasklist_resp(self):
         pass
     
+    # rets: a json string of all tasks belonging to user's friends
+    def get_friend_tasklist_resp(self):
+        pass
+    
+    # rets: a json string of all tasks belonging to groups the user belongs to
+    def get_group_tasklist_resp(self):
+        pass
+    
     def update(self, 
                username=None,
                password=None,
                name=None,
                info=None
                ):
-        if username is not None and validate_username(username):
+        if username is not None and User.query.filter_by(username=username).first():
             self.username = username
         if password is not None:
             self.password = password
@@ -85,17 +106,17 @@ class User(UserMixin, db.Model):
             self.name = name
         if info is not None:
             self.info = info
-
+            
     # rets: False if friend_id is already a friend of user
     #       True, else
-    def add_friend(self, friend_id):
+    def add_friend(user_id, friend_id):
         pass
-		
+    		
     # rets: False if user does not have this friend
     #       True, else
-    def delete_friend(self, friend_id):
+    def delete_friend(user_id, friend_id):
         pass
-        
+
 
 # All groups
 class Group(db.Model):
@@ -125,6 +146,10 @@ class Group(db.Model):
     
     # rets: json map includes valid=true and user_id
     def get_resp(self):
+        pass
+    
+    # rets: a json string of all tasks belonging to group
+    def get_tasklist_resp(self):
         pass
     
     def update(self, 
@@ -215,9 +240,3 @@ class Task(db.Model):
             self.group_id = group_id
         if info is not None:
             self.info = info
-            
-def validate_username(username):
-    if User.query.filter_by(username=username).first():
-        return False
-    else:
-        return True

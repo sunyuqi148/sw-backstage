@@ -6,8 +6,8 @@ from flask import json
 from flask_login import login_required, login_user, logout_user, current_user
 
 from ext import db, login_manager
-from models import User, Group, Task, validate_username
-from utils import Validity
+from models import User, Group, Task, Validity
+import utils
 
 import datetime
 
@@ -19,30 +19,25 @@ app.secret_key = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
-#db.drop_all(app=app)
+db.drop_all(app=app) # Only for debugging
 db.create_all(app=app)
 
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
-# Update the info of current user
-@app.route('/update_info', methods=['POST'])
+# Get info of another user
+@app.route('/get_user', methods=['POST'])
 @login_required
-def update_info():
+def get_user():
     pass # TODO
 
 
-@app.route('/add_friend', methods=['POST'])
+# Update the info of current user
+@app.route('/update_user', methods=['POST'])
 @login_required
-def add_friend():
-    friend_id = User.get_friend_id(username=request.form['friend_username'])
-    if friend_id:
-        if not User.add_friend(user_id=current_user.id, friend_id=friend_id):
-            return Validity(False, 'Friend already exists in your friend list.').get_resp()
-        return User.get_friendlist_resp(user_id=current_user.id)
-    else:
-        return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
+def update_user():
+    pass # TODO
 
 
 @app.route('/get_friendlist', methods=['GET'])
@@ -57,11 +52,28 @@ def get_tasklist():
     return User.get_tasklist_resp(user_id=current_user.id)
 
 
-# Get info of another user
-@app.route('/get_friend', methods=['POST'])
+@app.route('/get_friend_tasklist', methods=['GET'])
 @login_required
-def get_friend():
-    pass # TODO
+def get_friend_tasklist():
+    return User.get_friend_tasklist_resp(user_id=current_user.id)
+
+
+@app.route('/get_group_tasklist', methods=['GET'])
+@login_required
+def get_group_tasklist():
+    return User.get_group_tasklist_resp(user_id=current_user.id)
+
+
+@app.route('/add_friend', methods=['POST'])
+@login_required
+def add_friend():
+    friend_id = User.get_friend_id(username=request.form['friend_username'])
+    if friend_id:
+        if not User.add_friend(user_id=current_user.id, friend_id=friend_id):
+            return Validity(False, 'Friend already exists in your friend list.').get_resp()
+        return User.get_friendlist_resp(user_id=current_user.id)
+    else:
+        return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
 
 
 @app.route('/delete_friend', methods=['POST'])
@@ -76,17 +88,7 @@ def delete_friend():
         return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
 
 
-@app.route('/create_task', methods=['POST'])
-@login_required
-def create_task():
-    task = Task(user_id=current_user.id,
-				title=request.form['title'],
-				deadline=request.form['deadline'],
-				description=request.form['description'])
-    return task.get_resp()
-	
-	
-# Include: get task info, finish task and update task
+# Get task info
 @app.route('/get_task', methods=['POST'])
 @login_required
 def get_task():
@@ -98,12 +100,17 @@ def get_task():
         return Validity(True).get_resp()
     else:
         return Validity(False, 'Invalid task id').get_resp()
+    
 
-
-@app.route('/delete_task', methods=['POST'])
+# Update task info, include finishing the task
+@app.route('/update_task', methods=['POST'])
 @login_required
-def delete_task():
-    if Task.delete_task(user_id=current_user.id, task_id=request.form['task_id']):
+def update_task():
+    task = Task.get_task(user_id=current_user.id, task_id=request.form['task_id'])
+    if task:
+        if 'title' in request.form: task.modify_title(request.form['title'])
+        if 'deadline' in request.form: task.modify_deadline(request.form['deadline'])
+        if 'description' in request.form: task.modify_description(request.form['description'])
         return Validity(True).get_resp()
     else:
         return Validity(False, 'Invalid task id').get_resp()
@@ -116,46 +123,93 @@ def delete_task():
 #        return Validity(True).get_resp()
 #    else:
 #        return Validity(False, 'Invalid task id').get_resp()
-	
-	
-# Refreshing: check any updates on dataset and renew status of tasks
-@app.route('/refresh')
+
+
+@app.route('/create_task', methods=['POST'])
 @login_required
-def refresh():
-    return Task.get_tasklist_resp(current_user.id)
+def create_task():
+    task = Task(user_id=current_user.id,
+				title=request.form['title'],
+				deadline=request.form['deadline'],
+				description=request.form['description'])
+    return task.get_resp()
 
 
-# Create a new group
-@app.route('/create_group', methods=['POST'])
+@app.route('/delete_task', methods=['POST'])
 @login_required
-def create_group():
-    pass # TODO
+def delete_task():
+    if Task.delete_task(user_id=current_user.id, task_id=request.form['task_id']):
+        return Validity(True).get_resp()
+    else:
+        return Validity(False, 'Invalid task id').get_resp()
 
 
-# Create a new group
-@app.route('/join_group', methods=['POST'])
-@login_required
-def join_group():
-    pass # TODO
-
-
-# Include: get info of a group and update info of a group
+# Get info of a group
 @app.route('/get_group', methods=['POST'])
 @login_required
 def get_group():
     pass # TODO
 
 
-# Include quit a group and delete a whole group
+# Update info of a group
+@app.route('/update_group', methods=['POST'])
+@login_required
+def update_group():
+    pass # TODO
+
+
+# Create a group
+@app.route('/create_group', methods=['POST'])
+@login_required
+def create_group():
+    pass # TODO
+
+
+# Delete a group
 @app.route('/delete_group', methods=['POST'])
 @login_required
 def delete_group():
     pass # TODO
 
+    
+# Join a group
+@app.route('/join_group', methods=['POST'])
+@login_required
+def join_group():
+    pass # TODO
+
+
+# Quit a group
+@app.route('/quit_group', methods=['POST'])
+@login_required
+def quit_group():
+    pass # TODO
+
+
+# Add a member to the group
+@app.route('/add_member', methods=['POST'])
+@login_required
+def add_member():
+    pass # TODO
+
+
+# Delete a member from the group
+@app.route('/delete_member', methods=['POST'])
+@login_required
+def delete_member():
+    pass # TODO
+
+
+# Refreshing: check any updates on dataset and renew status of tasks
+@app.route('/refresh')
+@login_required
+def refresh():
+    pass # TODO
+
 
 @app.route('/register', methods=['GET','POST'])
 def register():
-    if validate_username(request.form['username']):
+    if utils.validate_username(request.form['username']):
         user = User(username=request.form['username'],
                     password=request.form['password'],
                     name=request.form['name'],
