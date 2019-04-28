@@ -13,17 +13,18 @@ import datetime
 
 
 class Validity:
-	# args: valid
+    # args: valid
     def __init__(self, valid = False,
                      info = ''):
         self._valid = valid
         self._info = info
-	
-	# rets: a json string of validity
+    
+    # rets: a json string of validity
     def get_resp(self):
-        return Response(json.dumps({'valid': self._valid,
-									'info': self._info}),
-						content_type='application/json')
+        return json.dumps({'valid': self._valid,' info': self._info})
+#        return Response(json.dumps({'valid': self._valid,
+#                                    'info': self._info}),
+#                        content_type='application/json')
 
 
 # Membership of some user for some group
@@ -111,7 +112,7 @@ class User(UserMixin, db.Model):
     #       True, else
     def add_friend(user_id, friend_id):
         pass
-    		
+            
     # rets: False if user does not have this friend
     #       True, else
     def delete_friend(user_id, friend_id):
@@ -168,7 +169,7 @@ class Group(db.Model):
     #       True, else
     def add_member(self, user_id):
         pass
-		
+        
     # rets: False if user does not have this friend
     #       True, else
     def delete_member(self, user_id):
@@ -213,9 +214,14 @@ class Task(db.Model):
     def get_id(self):
         return self.id
     
-    # rets: json map includes valid=true and user_id
-    def get_resp(self):
-        pass
+    # rets: a map includes valid=true and user_id
+    def get_info_map(self):
+        return {'title': self.title,
+                'create_time': self.create_time,
+                'finish_time': self.finish_time,
+                'status': self.status,
+                'publicity': self.publicity,
+                'info': self.info}
     
     def update(self, 
                owner_id=None,

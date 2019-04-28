@@ -19,7 +19,7 @@ app.secret_key = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
-db.drop_all(app=app) # Only for debugging
+#db.drop_all(app=app) # Only for debugging
 db.create_all(app=app)
 
 login_manager.init_app(app)
@@ -129,9 +129,9 @@ def update_task():
 @login_required
 def create_task():
     task = Task(user_id=current_user.id,
-				title=request.form['title'],
-				deadline=request.form['deadline'],
-				description=request.form['description'])
+                title=request.form['title'],
+                deadline=request.form['deadline'],
+                description=request.form['description'])
     return task.get_resp()
 
 
@@ -211,31 +211,30 @@ def refresh():
 def register():
     if utils.validate_username(request.form['username']):
         user = User(username=request.form['username'],
-                    password=request.form['password'],
-                    name=request.form['name'],
-                    info=request.form['info']
+                    password=request.form['password']
                     )
         db.session.add(user)
         db.session.commit()
-        login_user(user, remember=True)
-        return 'register succeeds'
+        # login_user(user, remember=True)
+        return Validity(True).get_resp()# 'register succeeds'
     else:
         return 'register fails'
-#    user_id = User.register_user(username=request.form['username'], password=request.form['password'])
-#    if user_id:
-#        return User.get_resp(user_id)
-#    else:
-#        return Validity(False, 'Username already exists or invalid password.').get_resp()
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    print(request.form['username'], request.form['password'])
     user = User.query.filter_by(username=request.form['username'],
                                 password=request.form['password']
                                 ).first()
     if user:
         login_user(user, remember=True)
-        return 'login succeeds'
+        #TODO: tasklist = Task.filter_by(userid=user.get_id())
+        tasklist = [Task(0, 'test1', '5/10 11:00am'), Task(0, 'test1', '7/1 7:00pm')] # For test
+        ret = []
+        for task in tasklist:
+            ret.append(task.get_info_map())
+        return json.dumps({'valid': True, 'task': ret}) #'login succeeds'
     else:
         return 'login fails'
 #    user_id = User.get_id(username=request.form['username'], password=request.form['password'])
