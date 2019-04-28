@@ -124,7 +124,7 @@ class User(UserMixin, db.Model):
 class Group(db.Model):
     # id, name, owner_id, info, tasks, members
     __tablename__ = 'group'
-    __id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     __name = db.Column(db.String(24), nullable=False)
     __owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     __info = db.Column(db.String(1024))
@@ -144,7 +144,7 @@ class Group(db.Model):
         self.__info = info
         
     def get_id(self):
-        return self.__id
+        return self.id
     
     # rets: json map includes valid=true and user_id
     def get_resp(self):
@@ -184,7 +184,7 @@ class Task(db.Model):
     # publicity: 0-private, 1-public, 2-group task
     # If group task, group_id is not none
     __tablename__ = 'task'
-    __id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     __owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     __title = db.Column(db.String(1024), nullable=False)
     __create_time = db.Column(db.DateTime, nullable=False)
