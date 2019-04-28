@@ -183,15 +183,15 @@ class Task(db.Model):
     # publicity: 0-private, 1-public, 2-group task
     # If group task, group_id is not none
     __tablename__ = 'task'
-    id = db.Column(db.Integer, primary_key=True)
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    title = db.Column(db.String(1024), nullable=False)
-    create_time = db.Column(db.DateTime, nullable=False)
-    finish_time = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.Integer, nullable=False)
-    publicity = db.Column(db.Integer, nullable=False)
-    group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
-    info = db.Column(db.String(1024))
+    __id = db.Column(db.Integer, primary_key=True)
+    __owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    __title = db.Column(db.String(1024), nullable=False)
+    __create_time = db.Column(db.DateTime, nullable=False)
+    __finish_time = db.Column(db.DateTime, nullable=False)
+    __status = db.Column(db.Integer, nullable=False)
+    __publicity = db.Column(db.Integer, nullable=False)
+    __group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
+    __info = db.Column(db.String(1024))
     
     def __init__(self, owner_id, title, finish_time,
                  status=0,
@@ -199,29 +199,29 @@ class Task(db.Model):
                  group_id=None,
                  info=''
                  ):
-        self.owner_id = owner_id
-        self.title = title
-        self.create_time = datetime.datetime.now()
-        self.finish_time = finish_time
-        self.status = status
-        self.publicity = publicity
-        if self.publicity == 2:
-            self.group_id = group_id
+        self.__owner_id = owner_id
+        self.__title = title
+        self.__create_time = datetime.datetime.now()
+        self.__finish_time = finish_time
+        self.__status = status
+        self.__publicity = publicity
+        if self.__publicity == 2:
+            self.__group_id = group_id
         else:
-            self.group_id = None
-        self.info = info
+            self.__group_id = None
+        self.__info = info
         
     def get_id(self):
         return self.id
     
     # rets: a map includes valid=true and user_id
     def get_info_map(self):
-        return {'title': self.title,
-                'create_time': self.create_time,
-                'finish_time': self.finish_time,
-                'status': self.status,
-                'publicity': self.publicity,
-                'info': self.info}
+        return {'title': self.__title,
+                'create_time': self.__create_time,
+                'finish_time': self.__finish_time,
+                'status': self.__status,
+                'publicity': self.__publicity,
+                'info': self.__info}
     
     def update(self, 
                owner_id=None,
@@ -233,16 +233,16 @@ class Task(db.Model):
                info=None
                ):
         if owner_id is not None and User.query.filter_by(id=owner_id).first():
-            self.owner_id = owner_id
+            self.__owner_id = owner_id
         if title is not None:
-            self.title = title
+            self.__title = title
         if finish_time is not None:
-            self.finish_time = finish_time
+            self.__finish_time = finish_time
         if status is not None:
-            self.status = status
+            self.__status = status
         if publicity is not None:
-            self.publicity = publicity
-        if self.publicity == 2 and group_id is not None:
-            self.group_id = group_id
+            self.__publicity = publicity
+        if self.__publicity == 2 and group_id is not None:
+            self.__group_id = group_id
         if info is not None:
-            self.info = info
+            self.__info = info
