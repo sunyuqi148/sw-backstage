@@ -42,6 +42,7 @@ friendship = db.Table('friendship',
 
 
 # All users
+# TODO: add visibility to members of this class
 class User(UserMixin, db.Model):
     # id, username, password, name, info, tasks, friends
     __tablename__ = "user"
@@ -123,27 +124,27 @@ class User(UserMixin, db.Model):
 class Group(db.Model):
     # id, name, owner_id, info, tasks, members
     __tablename__ = 'group'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(24), nullable=False)
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    info = db.Column(db.String(1024))
-    tasks = db.relationship('Task',
-                            backref='group',
-                            lazy='dynamic'
-                            )
-    members = db.relationship('User',
-                              secondary=membership,
-                              lazy='subquery',
-                              backref=db.backref('groups', lazy=True)
+    __id = db.Column(db.Integer, primary_key=True)
+    __name = db.Column(db.String(24), nullable=False)
+    __owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    __info = db.Column(db.String(1024))
+    __tasks = db.relationship('Task',
+                              backref='group',
+                              lazy='dynamic'
                               )
+    __members = db.relationship('User',
+                                secondary=membership,
+                                lazy='subquery',
+                                backref=db.backref('groups', lazy=True)
+                                )
     
     def __init__(self, name, owner_id, info=''):
-        self.name = name
-        self.owner_id = owner_id
-        self.info = info
+        self.__name = name
+        self.__owner_id = owner_id
+        self.__info = info
         
     def get_id(self):
-        return self.id
+        return self.__id
     
     # rets: json map includes valid=true and user_id
     def get_resp(self):
@@ -159,11 +160,11 @@ class Group(db.Model):
                info=None
                ):
         if name is not None:
-            self.name = name
+            self.__name = name
         if owner_id is not None and User.query.filter_by(id=owner_id).first():
-            self.owner_id = owner_id
+            self.__owner_id = owner_id
         if info is not None:
-            self.info = info
+            self.__info = info
             
     # rets: False if friend_id is already a friend of user
     #       True, else
