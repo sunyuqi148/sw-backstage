@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from flask import (Flask, request)
+from flask import (Flask, request, redirect, url_for)
 from flask import json
 from flask_login import login_required, login_user, logout_user, current_user
 
@@ -19,10 +19,11 @@ app.secret_key = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
-#db.drop_all(app=app) # Only for debugging
+db.drop_all(app=app) # Only for debugging
 db.create_all(app=app)
 
 login_manager.init_app(app)
+login_manager.session_protection = "strong"
 login_manager.login_view = "login"
 
 
@@ -40,16 +41,20 @@ def update_user():
     pass # TODO
 
 
+# Refreshing: check any updates on dataset and renew status of tasks
+@app.route('/refresh')
+@login_required
+def refresh():
+    #pass # TODO
+    print(current_user)
+    print(current_user.is_anonymous)
+    return current_user.get_resp()
+	
 @app.route('/get_friendlist', methods=['GET'])
 @login_required
 def get_friendlist():
     return User.get_friendlist_resp(user_id=current_user.id)
 
-
-@app.route('/get_tasklist', methods=['GET'])
-@login_required
-def get_tasklist():
-    return User.get_tasklist_resp(user_id=current_user.id)
 
 
 @app.route('/get_friend_tasklist', methods=['GET'])
@@ -200,15 +205,9 @@ def delete_member():
     pass # TODO
 
 
-# Refreshing: check any updates on dataset and renew status of tasks
-@app.route('/refresh')
-@login_required
-def refresh():
-    pass # TODO
-
-
 @app.route('/register', methods=['GET','POST'])
 def register():
+    print(request.form['username'], request.form['password'])
     if utils.validate_username(request.form['username']):
         user = User(username=request.form['username'],
                     password=request.form['password']
@@ -216,9 +215,22 @@ def register():
         db.session.add(user)
         db.session.commit()
         # login_user(user, remember=True)
-        return Validity(True).get_resp()# 'register succeeds'
+        print('valid')
+        return Validity(True).get_resp() # 'register succeeds'
     else:
-        return 'register fails'
+        print('invalid')
+        return Validity(False, 'Register fails: Invalid username or password.').get_resp() # 'register fails'
+
+@app.route('/get_tasklist', methods=['GET'])
+@login_required
+def get_tasklist():
+	#TODO(database): tasklist = Task.filter_by(userid=user.get_id())
+    tasklist = [Task(0, 'test1', '5/10 11:00am'), Task(0, 'test1', '7/1 7:00pm')] # For test
+    ret = []
+    for task in tasklist:
+        ret.append(task.get_info_map())
+    return json.dumps({'valid': True, 'task': ret}) #'get tasklist.'#Task.query.filter_by(id=int(user_id)).first()
+    #User.get_tasklist_resp(user_id=current_user.id)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -229,34 +241,22 @@ def login():
                                 ).first()
     if user:
         login_user(user, remember=True)
-        #TODO: tasklist = Task.filter_by(userid=user.get_id())
-        tasklist = [Task(0, 'test1', '5/10 11:00am'), Task(0, 'test1', '7/1 7:00pm')] # For test
-        ret = []
-        for task in tasklist:
-            ret.append(task.get_info_map())
-        return json.dumps({'valid': True, 'task': ret}) #'login succeeds'
+        return redirect(url_for('get_tasklist')) #json.dumps({'valid': True, 'task': ret}) #'login succeeds'
     else:
-        return 'login fails'
-#    user_id = User.get_id(username=request.form['username'], password=request.form['password'])
-#    if user_id:
-#        login_user(user_id)
-#        return Task.get_todolist_resp(user_id) 
-#    else:
-#        return Validity(False, 'Invalid username or password.').get_resp()
+        return Validity(False, 'Login fails: Invalid username or password.').get_resp() #'login fails'
 
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return 'logout succeeds'
-#    return Validity(True).get_resp()
+    return Validity(True).get_resp()
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.filter_by(id=int(user_id)).first()
-
+    
 
 @app.route('/', methods=['GET', 'POST'])
 def test():

@@ -21,7 +21,7 @@ class Validity:
     
     # rets: a json string of validity
     def get_resp(self):
-        return json.dumps({'valid': self._valid,' info': self._info})
+        return json.dumps({'valid': self._valid,'error_info': self._info})
 #        return Response(json.dumps({'valid': self._valid,
 #                                    'info': self._info}),
 #                        content_type='application/json')
