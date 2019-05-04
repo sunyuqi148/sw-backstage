@@ -217,7 +217,8 @@ class Task(db.Model):
     
     # rets: a map includes valid=true and user_id
     def get_info_map(self):
-        return {'title': self.__title,
+        return {'task_id': self.id,
+                'title': self.__title,
                 'create_time': self.__create_time,
                 'finish_time': self.__finish_time,
                 'status': self.__status,

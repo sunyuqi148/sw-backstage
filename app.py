@@ -49,7 +49,7 @@ def refresh():
     print(current_user)
     print(current_user.is_anonymous)
     return current_user.get_resp()
-	
+    
 @app.route('/get_friendlist', methods=['GET'])
 @login_required
 def get_friendlist():
@@ -91,63 +91,6 @@ def delete_friend():
         return Validity(True).get_resp()
     else:
         return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
-
-
-# Get task info
-@app.route('/get_task', methods=['POST'])
-@login_required
-def get_task():
-    task = Task.get_task(user_id=current_user.id, task_id=request.form['task_id'])
-    if task:
-        if 'title' in request.form: task.modify_title(request.form['title'])
-        if 'deadline' in request.form: task.modify_deadline(request.form['deadline'])
-        if 'description' in request.form: task.modify_description(request.form['description'])
-        return Validity(True).get_resp()
-    else:
-        return Validity(False, 'Invalid task id').get_resp()
-    
-
-# Update task info, include finishing the task
-@app.route('/update_task', methods=['POST'])
-@login_required
-def update_task():
-    task = Task.get_task(user_id=current_user.id, task_id=request.form['task_id'])
-    if task:
-        if 'title' in request.form: task.modify_title(request.form['title'])
-        if 'deadline' in request.form: task.modify_deadline(request.form['deadline'])
-        if 'description' in request.form: task.modify_description(request.form['description'])
-        return Validity(True).get_resp()
-    else:
-        return Validity(False, 'Invalid task id').get_resp()
-
-
-#@app.route('/finish_task', methods=['POST'])
-#@login_required
-#def finish_task():
-#    if Task.finish_task(user_id=current_user.id, task_id=request.form['task_id']):
-#        return Validity(True).get_resp()
-#    else:
-#        return Validity(False, 'Invalid task id').get_resp()
-
-
-@app.route('/create_task', methods=['POST'])
-@login_required
-def create_task():
-    task = Task(user_id=current_user.id,
-                title=request.form['title'],
-                deadline=request.form['deadline'],
-                description=request.form['description'])
-    return task.get_resp()
-
-
-@app.route('/delete_task', methods=['POST'])
-@login_required
-def delete_task():
-    if Task.delete_task(user_id=current_user.id, task_id=request.form['task_id']):
-        return Validity(True).get_resp()
-    else:
-        return Validity(False, 'Invalid task id').get_resp()
-
 
 # Get info of a group
 @app.route('/get_group', methods=['POST'])
@@ -205,6 +148,86 @@ def delete_member():
     pass # TODO
 
 
+#================== Task SubSystem ==================
+
+# Get task info
+@app.route('/get_task', methods=['POST'])
+@login_required
+def get_task():
+    #TODO(database): Task or utils, validate_task_id(), validate the task_id for logined user.
+    if Task.validate_task_id(current_user.id, request.form['task_id']):
+        task = Task.get(request.form['task_id'])
+        return json.dumps(task.get_map_info())
+    else:
+        return Validity(False, 'Invalid task id').get_resp()
+    
+
+@app.route('/get_tasklist', methods=['GET'])
+@login_required
+def get_tasklist(): # TODO(interaction): For test, implement it correctely
+    #TODO(database): tasklist = Task.filter_by(userid=user.get_id())
+    tasklist = [Task(0, 'test1', '5/10 11:00am'), Task(0, 'test1', '7/1 7:00pm')] # For test
+    ret = []
+    for task in tasklist:
+        ret.append(task.get_info_map())
+    return json.dumps({'valid': True, 'task': ret}) #'get tasklist.'#Task.query.filter_by(id=int(user_id)).first()
+    #User.get_tasklist_resp(user_id=current_user.id)
+
+
+# Update task info, include finishing the task
+@app.route('/update_task', methods=['POST'])
+@login_required
+def update_task():
+    if Task.validate_task_id(current_user.id, request.form['task_id']):
+        Task.update(owner_id=None, # I don't think any user have the authority to change task's owner
+                    title=(None if 'title' not in form else form['title']),
+                    finish_time=(None if 'finish_time' not in form else form['finish_time']),
+                    status=(None if 'status' not in form else form['status']),
+                    publicity=(None if 'publicity' not in form else form['publicity']),
+                    group_id=(None if 'group_id' not in form else form['group_id']),
+                    info=('' if 'info' not in form else form['info']))
+        return Validity(True).get_resp()
+    else:
+        return Validity(False, 'Invalid task id').get_resp()
+
+
+#@app.route('/finish_task', methods=['POST'])
+#@login_required
+#def finish_task():
+#    if Task.finish_task(user_id=current_user.id, task_id=request.form['task_id']):
+#        return Validity(True).get_resp()
+#    else:
+#        return Validity(False, 'Invalid task id').get_resp()
+
+
+@app.route('/create_task', methods=['POST'])
+@login_required
+def create_task():
+    form = request.form
+    task = Task(owner_id=current_user.id,
+                title=form['title'],
+                finish_time=form['deadline'],
+                status=(0 if 'status' not in form else form['status']),
+                publicity=(0 if 'publicity' not in form else form['publicity']),
+                group_id=(None if 'group_id' not in form else form['group_id']),
+                info=('' if 'info' not in form else form['info']))
+    db.session.add(task) #TODO(database): add a task
+    db.commit()
+    return json.dumps(task.get_info_map())
+
+
+@app.route('/delete_task', methods=['POST'])
+@login_required
+def delete_task():
+    if Task.validate_task_id(user_id=current_user.id, task_id=request.form['task_id']):
+        #TODO(database): delete a task 
+        return Validity(True).get_resp()
+    else:
+        return Validity(False, 'Invalid task id').get_resp()
+
+
+#================== User SubSystem (tested) ==================
+
 @app.route('/register', methods=['GET','POST'])
 def register():
     print(request.form['username'], request.form['password'])
@@ -220,17 +243,6 @@ def register():
     else:
         print('invalid')
         return Validity(False, 'Register fails: Invalid username or password.').get_resp() # 'register fails'
-
-@app.route('/get_tasklist', methods=['GET'])
-@login_required
-def get_tasklist():
-	#TODO(database): tasklist = Task.filter_by(userid=user.get_id())
-    tasklist = [Task(0, 'test1', '5/10 11:00am'), Task(0, 'test1', '7/1 7:00pm')] # For test
-    ret = []
-    for task in tasklist:
-        ret.append(task.get_info_map())
-    return json.dumps({'valid': True, 'task': ret}) #'get tasklist.'#Task.query.filter_by(id=int(user_id)).first()
-    #User.get_tasklist_resp(user_id=current_user.id)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -257,6 +269,9 @@ def logout():
 def load_user(user_id):
     return User.query.filter_by(id=int(user_id)).first()
     
+
+
+#================== Test ==================
 
 @app.route('/', methods=['GET', 'POST'])
 def test():
