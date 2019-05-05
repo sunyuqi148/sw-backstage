@@ -26,23 +26,43 @@
 
 前后端使用HTTP协议进行交互。具体地，前端提交POST请求，将请求数据以form形式发送给后端，并接收后端返回的JSON格式数据（content_type='application/json'）。
 
+若需启动server进行测试，登录服务器，执行以下命令即可：
+'''
+$ cd sw-backstage/
+$ git checkout master
+$ sudo python3 app.py
+'''
+
+
 #### 账号管理子系统
 
-##### login：
+##### register (tested):
 
-​	route: http://ip:port/login
+	route: http://222.29.159.164:10006/register
+	
+	request: username, password
+	
+	response: 
+	
+		1. 若注册成功，返回信息: valid(=true)
+	
+		2. 若用户名或密码不合法，返回错误信息: valid(=false), info(字符串，错误信息)
+
+##### login (tested)：
+
+​	route: http://222.29.159.164:10006/login
 
 ​	request: username, password
 
 ​	response: 
 
-​		1. 若登录成功，返回信息包含: valid(=true), user_id, list[task(id, title, deadline, description), ...]
+​		1. 若登录成功，返回信息包含: valid(=true), list[task(id, owner_id, title, deadline, ...), ...]
 
 ​		2. 若登录失败，返回错误信息: valid(=false), info(字符串，错误信息)
 
-##### logout:
+##### logout (tested):
 
-​	route: http://ip:port/logout
+​	route: http://222.29.159.164:10006/logout
 
 ​	method: GET
 
@@ -50,17 +70,17 @@
 
 #### 任务管理子系统：
 
-##### refresh_todolist:
+##### get_tasklist:
 
-​	route: http://ip:port/refresh_todolist
+​	route: http://222.29.159.164:10006/get_tasklist
 
 ​	method: GET
 
-​	response: list[task(id, title, deadline, description), ...]
+​	response: valid(=True), list[task(id, owner_id, title, deadline, ...), ...]
 
 ##### add_task:
 
-​	route: http://ip:port/addtask
+​	route: http://222.29.159.164:10006/addtask
 
 ​	request: title, deadline, description
 
@@ -68,7 +88,7 @@
 
 ##### modify_task:
 
-​	route: http://ip:port/modifytask
+​	route: http://222.29.159.164:10006/modifytask
 
 ​	request: task_id, title(optional), deadline(optional), description(optional)
 
@@ -78,7 +98,7 @@
 
 ##### delete_task:
 
-​	route: http://ip:port/deletetask
+​	route: http://222.29.159.164:10006/deletetask
 
 ​	request: task_id
 
@@ -88,7 +108,7 @@
 
 ##### finish_task:
 
-​	route: http://ip:port/finishtask
+​	route: http://222.29.159.164:10006/finishtask
 
 ​	request: task_id
 
