@@ -10,7 +10,7 @@ def validate_userid(user_id):
 
 
 def validate_username(username):
-    if User.query.filter_by(username=username).first():
+    if User.query.filter_by(__username=username).first():
         return False
     else:
         return True

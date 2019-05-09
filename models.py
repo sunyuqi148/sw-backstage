@@ -16,12 +16,12 @@ class Validity:
     # args: valid
     def __init__(self, valid = False,
                      info = ''):
-        self._valid = valid
-        self._info = info
+        self.__valid = valid
+        self.__info = info
     
     # rets: a json string of validity
     def get_resp(self):
-        return json.dumps({'valid': self._valid,'error_info': self._info})
+        return json.dumps({'valid': self.__valid,'error_info': self.__info})
 #        return Response(json.dumps({'valid': self._valid,
 #                                    'info': self._info}),
 #                        content_type='application/json')
@@ -47,13 +47,13 @@ class User(UserMixin, db.Model):
     # id, username, password, name, info, tasks, friends
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(24), nullable=False,
+    __username = db.Column(db.String(24), nullable=False,
                          unique=True)
-    password = db.Column(db.String(24), nullable=False)
-    name = db.Column(db.String(24), nullable=False)
-    info = db.Column(db.String(1024)) 
-    tasks = db.relationship('Task', backref='user', lazy='dynamic')
-    friends = db.relationship('User', #defining the relationship, User is left side entity
+    __password = db.Column(db.String(24), nullable=False)
+    __name = db.Column(db.String(24), nullable=False)
+    __info = db.Column(db.String(1024)) 
+    __tasks = db.relationship('Task', backref='user', lazy='dynamic')
+    __friends = db.relationship('User', #defining the relationship, User is left side entity
                                 secondary = friendship, 
                                 primaryjoin = (friendship.c.user_id == id), 
                                 secondaryjoin = (friendship.c.friend_id == id),
@@ -64,13 +64,13 @@ class User(UserMixin, db.Model):
                  name=None,
                  info=''
                  ):
-        self.username = username
-        self.password = password
+        self.__username = username
+        self.__password = password
         if name is None:
-            self.name = self.username
+            self.__name = self.__username
         else:
-            self.name = name
-        self.info = info
+            self.__name = name
+        self.__info = info
         
     def get_id(self):
         return self.id
@@ -100,14 +100,14 @@ class User(UserMixin, db.Model):
                name=None,
                info=None
                ):
-        if username is not None and User.query.filter_by(username=username).first():
-            self.username = username
+        if username is not None and User.query.filter_by(__username=username).first():
+            self.__username = username
         if password is not None:
-            self.password = password
+            self.__password = password
         if name is not None:
-            self.name = name
+            self.__name = name
         if info is not None:
-            self.info = info
+            self.__info = info
             
     # rets: False if friend_id is already a friend of user
     #       True, else
@@ -180,7 +180,7 @@ class Group(db.Model):
 # All tasks (DDLs)
 class Task(db.Model):
     # id, owner_id, title, create_time, finish_time, status, group, info
-    # status: 0-ongoning, 1-finished, 2-due
+    # status: 0-ongoing, 1-finished, 2-due
     # publicity: 0-private, 1-public, 2-group task
     # If group task, group_id is not none
     __tablename__ = 'task'

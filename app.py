@@ -154,8 +154,8 @@ def delete_member():
 @app.route('/get_task', methods=['POST'])
 @login_required
 def get_task():
-    #TODO(database): Task or utils, validate_task_id(), validate the task_id for logined user.
-    if Task.validate_task_id(current_user.id, request.form['task_id']):
+    #TODO(database): finished Task or utils, validate_taskid(), validate the task_id for logined user.
+    if utils.validate_taskid(current_user.id, request.form['task_id']):
         task = Task.get(request.form['task_id'])
         return json.dumps(task.get_map_info())
     else:
@@ -165,8 +165,9 @@ def get_task():
 @app.route('/get_tasklist', methods=['GET'])
 @login_required
 def get_tasklist(): # TODO(interaction): For test, implement it correctely
-    #TODO(database): tasklist = Task.filter_by(userid=user.get_id())
-    tasklist = [Task(0, 'test1', '5/10 11:00am'), Task(0, 'test1', '7/1 7:00pm')] # For test
+    #TODO(database): finished
+    tasklist = Task.query.filter_by(__owner_id=current_user.get_id()).all()
+#    tasklist = [Task(0, 'test1', datetime.datetime.now()), Task(1, 'test2', datetime.datetime.now())] # For test
     ret = []
     for task in tasklist:
         ret.append(task.get_info_map())
@@ -211,7 +212,7 @@ def create_task():
                 publicity=(0 if 'publicity' not in form else form['publicity']),
                 group_id=(None if 'group_id' not in form else form['group_id']),
                 info=('' if 'info' not in form else form['info']))
-    db.session.add(task) #TODO(database): add a task
+    db.session.add(task) #TODO(database): add a task finished
     db.commit()
     return json.dumps(task.get_info_map())
 
@@ -219,8 +220,11 @@ def create_task():
 @app.route('/delete_task', methods=['POST'])
 @login_required
 def delete_task():
-    if Task.validate_task_id(user_id=current_user.id, task_id=request.form['task_id']):
-        #TODO(database): delete a task 
+    if Task.validate_task_id(task_id=request.form['task_id']):
+        #TODO(database): delete a task finished
+        task = Task.query.filter_by(id=request.form['task_id'])
+        db.session.delete(task)
+        db.commit()
         return Validity(True).get_resp()
     else:
         return Validity(False, 'Invalid task id').get_resp()
@@ -248,8 +252,8 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     print(request.form['username'], request.form['password'])
-    user = User.query.filter_by(username=request.form['username'],
-                                password=request.form['password']
+    user = User.query.filter_by(__username=request.form['username'],
+                                __password=request.form['password']
                                 ).first()
     if user:
         login_user(user, remember=True)
@@ -291,14 +295,15 @@ def test():
     user1 = User.query.filter_by(id=1).first()
     user2 = User.query.filter_by(id=2).first()
     user3 = User.query.filter_by(id=3).first()
-    user1.friends.extend([user2,user3])
+    user1.__friends.extend([user2,user3])
     db.session.commit()
-    print(User.query.filter_by(id=1).first().friends)
-    print(User.query.filter_by(id=2).first().friends)
+    print(User.query.filter_by(id=1).first().__friends)
+    print(User.query.filter_by(id=2).first().__friends)
 #    print(user.tasks)
     return 'successful!'
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80, debug=False, ssl_context='adhoc')
+#    app.run(host='0.0.0.0', port=80, debug=False, ssl_context='adhoc')
+    app.run(host='127.0.0.1', port=5000, debug=True)
     
