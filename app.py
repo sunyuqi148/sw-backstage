@@ -157,7 +157,7 @@ def get_task():
     #TODO(database): finished Task or utils, validate_taskid(), validate the task_id for logined user.
     if utils.validate_taskid(current_user.id, request.form['task_id']):
         task = Task.get(request.form['task_id'])
-        return json.dumps(task.get_map_info())
+        return Validity(True, ret_map=task.get_map_info())
     else:
         return Validity(False, 'Invalid task id').get_resp()
     
@@ -171,7 +171,8 @@ def get_tasklist(): # TODO(interaction): For test, implement it correctely
     ret = []
     for task in tasklist:
         ret.append(task.get_info_map())
-    return json.dumps({'valid': True, 'task': ret}) #'get tasklist.'#Task.query.filter_by(id=int(user_id)).first()
+    return Validity(True, {'task': ret}).get_resp() 
+    #'get tasklist.'#Task.query.filter_by(id=int(user_id)).first()
     #User.get_tasklist_resp(user_id=current_user.id)
 
 
@@ -214,7 +215,7 @@ def create_task():
                 info=('' if 'info' not in form else form['info']))
     db.session.add(task) #TODO(database): add a task finished
     db.commit()
-    return json.dumps(task.get_info_map())
+    return Validity(True, task.get_info_map()).get_resp()
 
 
 @app.route('/delete_task', methods=['POST'])

@@ -14,14 +14,18 @@ import datetime
 
 class Validity:
     # args: valid
+    # if True, create with return information
     def __init__(self, valid = False,
-                     info = ''):
-        self.__valid = valid
-        self.__info = info
-    
+                 info = '',
+                 ret_map = {}):
+        if valid: self.__map = ret_map
+        else: self.__map = {}
+        self.__map['valid'] = valid
+        self.__map['error_info'] = info
+   
     # rets: a json string of validity
     def get_resp(self):
-        return json.dumps({'valid': self.__valid,'error_info': self.__info})
+        return json.dumps(self.__map)
 #        return Response(json.dumps({'valid': self._valid,
 #                                    'info': self._info}),
 #                        content_type='application/json')
