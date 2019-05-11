@@ -36,11 +36,18 @@ def validate_friendship(user_id, friend_id):
 
 # Ownership if a group
 def validate_ownership(user_id, group_id):
-    pass
+    if Group.query.filter_by(id = group_id, __owner_id = user_id).first():
+        return True
+    else:
+        return False
 
 
 def validate_membership(user_id, group_id):
-    pass
+    group = Group.query.filter_by(id=group_id).first()
+    for member in group.__members:
+        if user_id == member.get_id():
+            return True
+    return False
 
 
 # Ownership if a task
