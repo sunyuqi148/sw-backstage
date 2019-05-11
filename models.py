@@ -150,13 +150,8 @@ class Group(db.Model):
     def get_id(self):
         return self.id
     
-    # rets: json map includes valid=true and user_id
-    def get_resp(self):
-        pass
-    
-    # rets: a json string of all tasks belonging to group
-    def get_tasklist_resp(self):
-        pass
+    def get_members(self):
+        return self.__members
     
     def update(self, 
                name=None,
