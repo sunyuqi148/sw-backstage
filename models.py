@@ -170,15 +170,11 @@ class Group(db.Model):
         if info is not None:
             self.__info = info
             
-    # rets: False if friend_id is already a friend of user
-    #       True, else
-    def add_member(self, user_id):
-        pass
-        
-    # rets: False if user does not have this friend
-    #       True, else
-    def delete_member(self, user_id):
-        pass
+    def get_info_map(self):
+        return {'group_id': self.id,
+                'name': self.__name,
+                'owner_id':self.__owner_id,
+                'info': self.__info}
 
 
 # All tasks (DDLs)
