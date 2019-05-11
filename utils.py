@@ -4,11 +4,12 @@ from models import User, Group, Task
 # Validating methods
 def validate_userid(user_id):
     if User.query.filter_by(id=user_id).first():
-        return False
-    else:
         return True
+    else:
+        return False
 
 
+# when new add a user, check whether there is a same username
 def validate_username(username):
     if User.query.filter_by(__username=username).first():
         return False
@@ -18,16 +19,16 @@ def validate_username(username):
 
 def validate_groupid(group_id):
     if Group.query.filter_by(id=group_id).first():
-        return False
-    else:
         return True
+    else:
+        return False
 
 
 def validate_taskid(task_id):
     if Task.query.filter_by(id=task_id).first():
-        return False
-    else:
         return True
+    else:
+        return False
 
 
 def validate_friendship(user_id, friend_id):
