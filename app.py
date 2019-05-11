@@ -92,60 +92,126 @@ def delete_friend():
     else:
         return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
 
+#================ GROUP FUNCTION =============
 # Get info of a group
 @app.route('/get_group', methods=['POST'])
 @login_required
 def get_group():
-    pass # TODO
+    if utils.validate_groupid(request.form['group_id']):
+        if utils.validate_membership(current_user.id, request.form['group_id']):
+            group = Group.get(request.form['group_id'])
+            return  Validity(True, ret_map=group.get_map_info())
+        else:
+            return Validity(False, 'No access').get_resp()
+    else:
+        return Validity(False, 'Invalid group id').get_resp()
+
+
+# Get group task list
+@app.route('/get_group_task', methods=['POST'])
+@login_required
+def get_group_task():
+    pass  # TODO
+
+
+# Get group member list
+@app.route('/get_group_member', methods=['POST'])
+@login_required
+def get_group_member():
+    pass  # TODO
 
 
 # Update info of a group
 @app.route('/update_group', methods=['POST'])
 @login_required
 def update_group():
-    pass # TODO
+    if utils.validate_groupid(request.form['task_id']):
+        if utils.validate_ownership(current_user.id, request.form['group.id']):
+            Group.update(name=(None if 'name' not in request.form else request.form['name']),
+                         owner_id=(None if 'owner_id' not in request.form else request.form['owner_id']),
+                         info=('' if 'info' not in request.form else request.form['info']))
+            return Validity(True).get_resp()
+    else:
+        return Validity(False, 'Invalid group id').get_resp()
+
+
+# Create group task
+@app.route('/create_group_task', methods=['POST'])
+@login_required
+def create_group_task():
+    pass  # TODO
+
+
+# Update group task
+@app.route('/update_group_task', methods=['POST'])
+@login_required
+def update_group_task():
+    pass  # TODO
+
+
+# Delete group task
+@app.route('/delete_group_task', methods=['POST'])
+@login_required
+def delete_group_task():
+    pass  # TODO
 
 
 # Create a group
 @app.route('/create_group', methods=['POST'])
 @login_required
 def create_group():
-    pass # TODO
+    form = request.form
+    group = Group(name=form['name'],
+                  owner_id=current_user.id,
+                  info=('' if 'info' not in form else form['info']))
+    db.session.add(group)
+    db.commit()
+    print('group created')
+    return Validity(True, group.get_info_map()).get_resp()
 
 
 # Delete a group
 @app.route('/delete_group', methods=['POST'])
 @login_required
 def delete_group():
-    pass # TODO
+    if utils.validate_groupid(group_id=request.form['group_id']):
+        if utils.validate_ownership(current_user.id, request.form['group_id']):
+            group = Group.query.filter_by(id=request.form['group_id'])
+            db.session.delete(group)
+            db.commit()
+            return Validity(True).get_resp()
+        else:
+            return Validity(False, 'No access').get_resp()
+    else:
+        return Validity(False, 'Invalid task id').get_resp()
 
-    
+
 # Join a group
 @app.route('/join_group', methods=['POST'])
 @login_required
 def join_group():
-    pass # TODO
+    pass  # TODO
 
 
 # Quit a group
 @app.route('/quit_group', methods=['POST'])
 @login_required
 def quit_group():
-    pass # TODO
+    pass  # TODO
 
 
 # Add a member to the group
 @app.route('/add_member', methods=['POST'])
 @login_required
 def add_member():
-    pass # TODO
+    pass  # TODO
 
 
 # Delete a member from the group
 @app.route('/delete_member', methods=['POST'])
 @login_required
 def delete_member():
-    pass # TODO
+    pass  # TODO
 
 
 #================== Task SubSystem ==================
