@@ -425,7 +425,7 @@ def login():
                                 password=request.form['password']
                                 ).first()
     if user:
-        login_user(user, remember=False)
+        login_user(user, remember=True)
         return redirect(url_for('get_tasklist')) #json.dumps({'valid': True, 'task': ret}) #'login succeeds'
     else:
         return Validity(False, 'Login fails: Invalid username or password.').get_resp() #'login fails'
@@ -480,6 +480,6 @@ def test():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
-#    app.run(host='127.0.0.1', port=5000, debug=True)
+#    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
+    app.run(host='127.0.0.1', port=5000, debug=True)
     
