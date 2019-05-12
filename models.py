@@ -110,7 +110,7 @@ class User(UserMixin, db.Model):
                name=None,
                info=None
                ):
-        if username is not None and not User.query.filter_by(__username=username).first():
+        if username is not None and not User.query.filter_by(username=username).first():
             self.username = username
         if password is not None:
             self.password = password
@@ -127,13 +127,6 @@ class User(UserMixin, db.Model):
         friend = User.query.filter_by(id=friend_id).first()
         if friend in self.__friends:
             self.__friends.remove(friend)
-    
-#    def add_task(self, task_id):
-#        self.__tasks.append(task_id)
-#        
-#    def delete_task(self, task_id):
-#        if task_id in self.__tasks:
-#            self.__tasks.remove(task_id)
 
 
 # All groups

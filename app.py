@@ -65,7 +65,7 @@ def update_user():
 @login_required
 def get_friendlist():
     ret = [friend.get_info_map() for friend in current_user.get_friends()]
-    return Validity(True, {'task list': ret}).get_resp()
+    return Validity(True, {'friend list': ret}).get_resp()
 
 
 @app.route('/get_grouplist', methods=['GET'])
