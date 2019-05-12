@@ -226,13 +226,7 @@ def update_group_task():
             return Validity(True).get_resp()
         elif utils.validate_membership(current_user.id, request.form['group_id']):
             # members can only edit the progress
-            task.update(owner_id=None,
-                        title=None,
-                        finish_time=None,
-                        status=(None if 'status' not in request.form else request.form['status']),
-                        publicity=None,
-                        group_id=None,
-                        info='')
+            task.update(status=(None if 'status' not in request.form else request.form['status']))
             return Validity(True).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
@@ -245,7 +239,7 @@ def update_group_task():
 @login_required
 def delete_group_task():
     if utils.validate_ownership(current_user.id, request.form['group_id']):
-        if Task.query.filter_by(id=request.form['task_id'], __group_id=request.form['group_id']).first():
+        if Task.query.filter_by(id=request.form['task_id']).first():
             task = Task.query.filter_by(id=request.form['task_id']).first()
             db.session.delete(task)
             db.session.commit()
@@ -283,35 +277,71 @@ def delete_group():
         else:
             return Validity(False, 'No access').get_resp()
     else:
-        return Validity(False, 'Invalid task id').get_resp()
+        return Validity(False, 'Invalid group id').get_resp()
 
 
 # Join a group
 @app.route('/join_group', methods=['POST'])
 @login_required
 def join_group():
-    pass  # TODO
+    if utils.validate_groupid(group_id=request.form['group_id']):
+        if not utils.validate_membership(current_user.id, request.form['group_id']):
+            group = Group.query.filter_by(id=request.form['group_id']).first()
+            group.add_member(current_user.id)
+            db.session.commit()
+            return Validity(True).get_resp()
+        else:
+            return Validity(False, 'Already in the group').get_resp()
+    else:
+        return Validity(False, 'Invalid group id').get_resp()
 
 
 # Quit a group
 @app.route('/quit_group', methods=['POST'])
 @login_required
 def quit_group():
-    pass  # TODO
+    if utils.validate_groupid(group_id=request.form['group_id']):
+        if utils.validate_membership(current_user.id, request.form['group_id']) and not utils.validate_ownership(current_user.id, request.form['group_id']):
+            group = Group.query.filter_by(id=request.form['group_id']).first()
+            group.delete_member(current_user.id)
+            db.session.commit()
+            return Validity(True).get_resp()
+        else:
+            return Validity(False, 'Can not quit the group').get_resp()
+    else:
+        return Validity(False, 'Invalid group id').get_resp()
 
 
 # Add a member to the group
 @app.route('/add_member', methods=['POST'])
 @login_required
 def add_member():
-    pass  # TODO
+    if utils.validate_groupid(group_id=request.form['group_id']):
+        if not utils.validate_membership(request.form['user_id'], request.form['group_id']):
+            group = Group.query.filter_by(id=request.form['group_id']).first()
+            group.add_member(request.form['user_id'])
+            db.session.commit()
+            return Validity(True).get_resp()
+        else:
+            return Validity(False, 'Already in the group').get_resp()
+    else:
+        return Validity(False, 'Invalid group id').get_resp()
 
 
 # Delete a member from the group
 @app.route('/delete_member', methods=['POST'])
 @login_required
 def delete_member():
-    pass  # TODO
+    if utils.validate_groupid(group_id=request.form['group_id']):
+        if utils.validate_membership(request.form['user_id'], request.form['group_id']) and not utils.validate_ownership(request.form['user_id'], request.form['group_id']):
+            group = Group.query.filter_by(id=request.form['group_id']).first()
+            group.delete_member(request.form['user_id'])
+            db.session.commit()
+            return Validity(True).get_resp()
+        else:
+            return Validity(False, 'Can not quit the group').get_resp()
+    else:
+        return Validity(False, 'Invalid group id').get_resp()
 
 
 #================== Task SubSystem ==================
