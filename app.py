@@ -425,7 +425,7 @@ def login():
                                 password=request.form['password']
                                 ).first()
     if user:
-        login_user(user, remember=True)
+        login_user(user, remember=False)
         return redirect(url_for('get_tasklist')) #json.dumps({'valid': True, 'task': ret}) #'login succeeds'
     else:
         return Validity(False, 'Login fails: Invalid username or password.').get_resp() #'login fails'
