@@ -56,7 +56,7 @@ def update_user():
     current_user.update(username=(None if 'username' not in request.form else request.form['username']),
                 password=(None if 'password' not in request.form else request.form['password']),
                  name=(None if 'name' not in request.form else request.form['name']),
-                 info=('' if 'info' not in request.form else request.form['info']))
+                 info=(None if 'info' not in request.form else request.form['info']))
     return Validity(True).get_resp()
 
     
@@ -135,8 +135,8 @@ def delete_friend():
 def get_group():
     if utils.validate_groupid(request.form['group_id']):
 #        if utils.validate_membership(current_user.id, request.form['group_id']):
-        group = Group.query.filter_by(id = request.form['group_id'])
-        return  Validity(True, ret_map=group.get_map_info())
+        group = Group.query.filter_by(id = request.form['group_id']).first()
+        return Validity(True, ret_map=group.get_map_info())
 #        else:
 #            return Validity(False, 'No access').get_resp()
     else:
@@ -149,11 +149,9 @@ def get_group():
 def get_group_task():
     if utils.validate_groupid(request.form['group_id']):
         if utils.validate_membership(current_user.id, request.form['group_id']):
-            tasklist = Task.query.filter_by(_group_id = request.form['group_id']).all()
-            ret = []
-            for task in tasklist:
-                ret.append(task.get_info_map())
-            return Validity(True, {'task': ret}).get_resp()
+            group = Group.query.filter_by(id=request.form['group_id']).first()
+            ret = [task.get_info_map() for task in group.get_tasks()]
+            return Validity(True, {'task list': ret}).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
     else:
@@ -166,11 +164,8 @@ def get_group_task():
 def get_group_member():
     if utils.validate_groupid(request.form['group_id']):
         if utils.validate_membership(current_user.id, request.form['group_id']):
-            group = Group.query.filter_by(id = request.form['group_id'])
-            members = group.get_members()
-            ret = []
-            for member in members:
-                ret.append(member.get_info_map())
+            group = Group.query.filter_by(id=request.form['group_id']).first()
+            ret = [user.get_info_map() for user in group.get_members()]
             return Validity(True, {'member list': ret}).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
@@ -184,11 +179,13 @@ def get_group_member():
 def update_group():
     if utils.validate_groupid(request.form['task_id']):
         if utils.validate_ownership(current_user.id, request.form['group.id']):
-            group = Group.query.filter_by(id = request.form['group_id'])
+            group = Group.query.filter_by(id = request.form['group_id']).first()
             group.update(name=(None if 'name' not in request.form else request.form['name']),
                          owner_id=(None if 'owner_id' not in request.form else request.form['owner_id']),
-                         info=('' if 'info' not in request.form else request.form['info']))
+                         info=(None if 'info' not in request.form else request.form['info']))
             return Validity(True).get_resp()
+        else:
+            return Validity(False, 'No access').get_resp()
     else:
         return Validity(False, 'Invalid group id').get_resp()
 
@@ -203,7 +200,7 @@ def create_group_task():
                     title=form['title'],
                     finish_time=form['deadline'],
                     status=(0 if 'status' not in form else form['status']),
-                    publicity=(0 if 'publicity' not in form else form['publicity']),
+                    publicity=2,
                     group_id=(None if 'group_id' not in form else form['group_id']),
                     info=('' if 'info' not in form else form['info']))
         db.session.add(task)
@@ -218,8 +215,17 @@ def create_group_task():
 @login_required
 def update_group_task():
     if utils.validate_taskid(request.form['task_id']):
-        task = Task.query.filter_by(request.form['task_id'])
-        if utils.validate_membership(current_user.id, request.form['group_id']):
+        task = Task.query.filter_by(request.form['task_id']).first()
+        if utils.validate_ownership(current_user.id, request.form['group_id']):
+            task.update(owner_id=None,
+                        title=(None if 'title' not in request.form else request.form['title']),
+                        finish_time=(None if 'finish_time' not in request.form else request.form['finish_time']),
+                        status=(None if 'status' not in request.form else request.form['status']),
+                        publicity=(None if 'publicity' not in request.form else request.form['publicity']),
+                        group_id=(None if 'group_id' not in request.form else request.form['group_id']),
+                        info=(None if 'info' not in request.form else request.form['info']))
+            return Validity(True).get_resp()
+        elif utils.validate_membership(current_user.id, request.form['group_id']):
             # members can only edit the progress
             task.update(owner_id=None,
                         title=None,
@@ -229,19 +235,10 @@ def update_group_task():
                         group_id=None,
                         info='')
             return Validity(True).get_resp()
-        if utils.validate_ownership(current_user.id, request.form['group_id']):
-            task.update(owner_id=None,
-                        title=(None if 'title' not in request.form else request.form['title']),
-                        finish_time=(None if 'finish_time' not in request.form else request.form['finish_time']),
-                        status=(None if 'status' not in request.form else request.form['status']),
-                        publicity=(None if 'publicity' not in request.form else request.form['publicity']),
-                        group_id=(None if 'group_id' not in request.form else request.form['group_id']),
-                        info=('' if 'info' not in request.form else request.form['info']))
-            return Validity(True).get_resp()
         else:
-            return Validity(False, 'Invalid task id').get_resp()
+            return Validity(False, 'No access').get_resp()
     else:
-        return Validity(False, 'No access').get_resp()
+        return Validity(False, 'Invalid task id').get_resp()
 
 
 # Delete group task
@@ -249,8 +246,8 @@ def update_group_task():
 @login_required
 def delete_group_task():
     if utils.validate_ownership(current_user.id, request.form['group_id']):
-        if Task.validate_task_id(task_id=request.form['task_id']):
-            task = Task.query.filter_by(id=request.form['task_id'])
+        if Task.query.filter_by(id=request.form['task_id'], __group_id=request.form['group_id']).first():
+            task = Task.query.filter_by(id=request.form['task_id']).first()
             db.session.delete(task)
             db.commit()
             return Validity(True).get_resp()
@@ -280,7 +277,7 @@ def create_group():
 def delete_group():
     if utils.validate_groupid(group_id=request.form['group_id']):
         if utils.validate_ownership(current_user.id, request.form['group_id']):
-            group = Group.query.filter_by(id=request.form['group_id'])
+            group = Group.query.filter_by(id=request.form['group_id']).first()
             db.session.delete(group)
             db.commit()
             return Validity(True).get_resp()
