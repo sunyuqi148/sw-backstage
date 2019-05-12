@@ -42,8 +42,8 @@ def refresh():
 @app.route('/get_user', methods=['POST'])
 @login_required
 def get_user():
-    if utils.validate_userid(request.form['user_id']):
-        user = User.query.filter_by(id=request.form['user_id']).first()
+    if utils.validate_userid(int(request.form['user_id'])):
+        user = User.query.filter_by(id=int(request.form['user_id'])).first()
         return Validity(True, ret_map=user.get_map_info())
     else:
         return Validity(False, 'Invalid user id').get_resp()
@@ -106,11 +106,11 @@ def get_group_tasklist():
 @app.route('/add_friend', methods=['POST'])
 @login_required
 def add_friend():
-    if not utils.validate_userid(request.form['friend_id']) or utils.validate_friendship(current_user.id, request.form['friend_id']):
+    if not utils.validate_userid(int(request.form['friend_id'])) or utils.validate_friendship(int(current_user.id), int(request.form['friend_id'])):
         return Validity(False, 'User ' + request.form['friend_id'] + ' does not exist.').get_resp()
-    friend = User.query.filter_by(id = request.form['friend_id']).first()
-    current_user.add_friend(request.form['friend_id'])
-    friend.add_friend(current_user.id)
+    friend = User.query.filter_by(id = int(request.form['friend_id'])).first()
+    current_user.add_friend(int(request.form['friend_id']))
+    friend.add_friend(int(current_user.id))
     db.session.commit()
     return Validity(True).get_resp()
 
@@ -118,11 +118,11 @@ def add_friend():
 @app.route('/delete_friend', methods=['POST'])
 @login_required
 def delete_friend():
-    if not utils.validate_userid(request.form['friend_id']) or not utils.validate_friendship(current_user.id, request.form['friend_id']):
+    if not utils.validate_userid(int(request.form['friend_id'])) or not utils.validate_friendship(int(current_user.id), int(request.form['friend_id'])):
         return Validity(False, 'User ' + request.form['friend_id'] + ' does not exist.').get_resp()
-    friend = User.query.filter_by(id = request.form['friend_id']).first()
-    current_user.delete_friend(request.form['friend_id'])
-    friend.delete_friend(current_user.id)
+    friend = User.query.filter_by(id = int(request.form['friend_id'])).first()
+    current_user.delete_friend(int(request.form['friend_id']))
+    friend.delete_friend(int(current_user.id))
     db.session.commit()
     return Validity(True).get_resp()
 
@@ -131,9 +131,9 @@ def delete_friend():
 @app.route('/get_group', methods=['POST'])
 @login_required
 def get_group():
-    if utils.validate_groupid(request.form['group_id']):
-#        if utils.validate_membership(current_user.id, request.form['group_id']):
-        group = Group.query.filter_by(id = request.form['group_id']).first()
+    if utils.validate_groupid(int(request.form['group_id'])):
+#        if utils.validate_membership(current_user.id, int(request.form['group_id'])):
+        group = Group.query.filter_by(id = int(request.form['group_id'])).first()
         return Validity(True, ret_map=group.get_map_info())
 #        else:
 #            return Validity(False, 'No access').get_resp()
@@ -145,9 +145,9 @@ def get_group():
 @app.route('/get_group_task', methods=['POST'])
 @login_required
 def get_group_task():
-    if utils.validate_groupid(request.form['group_id']):
-        if utils.validate_membership(current_user.id, request.form['group_id']):
-            group = Group.query.filter_by(id=request.form['group_id']).first()
+    if utils.validate_groupid(int(request.form['group_id'])):
+        if utils.validate_membership(int(current_user.id), int(request.form['group_id'])):
+            group = Group.query.filter_by(id=int(request.form['group_id'])).first()
             ret = [task.get_info_map() for task in group.get_tasks()]
             return Validity(True, {'task list': ret}).get_resp()
         else:
@@ -160,9 +160,9 @@ def get_group_task():
 @app.route('/get_group_member', methods=['POST'])
 @login_required
 def get_group_member():
-    if utils.validate_groupid(request.form['group_id']):
-        if utils.validate_membership(current_user.id, request.form['group_id']):
-            group = Group.query.filter_by(id=request.form['group_id']).first()
+    if utils.validate_groupid(int(request.form['group_id'])):
+        if utils.validate_membership(int(current_user.id), int(request.form['group_id'])):
+            group = Group.query.filter_by(id=int(request.form['group_id'])).first()
             ret = [user.get_info_map() for user in group.get_members()]
             return Validity(True, {'member list': ret}).get_resp()
         else:
@@ -175,11 +175,11 @@ def get_group_member():
 @app.route('/update_group', methods=['POST'])
 @login_required
 def update_group():
-    if utils.validate_groupid(request.form['task_id']):
-        if utils.validate_ownership(current_user.id, request.form['group.id']):
-            group = Group.query.filter_by(id = request.form['group_id']).first()
+    if utils.validate_groupid(int(request.form['task_id'])):
+        if utils.validate_ownership(int(current_user.id), int(request.form['group_id'])):
+            group = Group.query.filter_by(id = int(request.form['group_id'])).first()
             group.update(name=(None if 'name' not in request.form else request.form['name']),
-                         owner_id=(None if 'owner_id' not in request.form else request.form['owner_id']),
+                         owner_id=(None if 'owner_id' not in request.form else int(request.form['owner_id'])),
                          info=(None if 'info' not in request.form else request.form['info']))
             db.session.commit()
             return Validity(True).get_resp()
@@ -193,14 +193,14 @@ def update_group():
 @app.route('/create_group_task', methods=['POST'])
 @login_required
 def create_group_task():
-    if utils.validate_ownership(current_user.id, request.form['group.id']):
+    if utils.validate_ownership(int(current_user.id), int(request.form['group_id'])):
         form = request.form
-        task = Task(owner_id=current_user.id,
+        task = Task(owner_id=int(current_user.id),
                     title=form['title'],
                     finish_time=form['deadline'],
                     status=(0 if 'status' not in form else form['status']),
                     publicity=2,
-                    group_id=(None if 'group_id' not in form else form['group_id']),
+                    group_id=(None if 'group_id' not in form else int(form['group_id'])),
                     info=('' if 'info' not in form else form['info']))
         db.session.add(task)
         db.session.commit()
@@ -213,20 +213,20 @@ def create_group_task():
 @app.route('/update_group_task', methods=['POST'])
 @login_required
 def update_group_task():
-    if utils.validate_taskid(request.form['task_id']):
-        task = Task.query.filter_by(request.form['task_id']).first()
-        if utils.validate_ownership(current_user.id, request.form['group_id']):
+    if utils.validate_taskid(int(request.form['task_id'])):
+        task = Task.query.filter_by(int(request.form['task_id'])).first()
+        if utils.validate_ownership(int(current_user.id), int(request.form['group_id'])):
             task.update(owner_id=None,
                         title=(None if 'title' not in request.form else request.form['title']),
                         finish_time=(None if 'finish_time' not in request.form else request.form['finish_time']),
                         status=(None if 'status' not in request.form else request.form['status']),
-                        publicity=(None if 'publicity' not in request.form else request.form['publicity']),
-                        group_id=(None if 'group_id' not in request.form else request.form['group_id']),
+                        publicity=(None if 'publicity' not in request.form else int(request.form['publicity'])),
+                        group_id=(None if 'group_id' not in request.form else int(request.form['group_id'])),
                         info=(None if 'info' not in request.form else request.form['info']))
             return Validity(True).get_resp()
-        elif utils.validate_membership(current_user.id, request.form['group_id']):
+        elif utils.validate_membership(int(current_user.id), int(request.form['group_id'])):
             # members can only edit the progress
-            task.update(status=(None if 'status' not in request.form else request.form['status']))
+            task.update(status=(None if 'status' not in request.form else int(request.form['status'])))
             return Validity(True).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
@@ -238,9 +238,9 @@ def update_group_task():
 @app.route('/delete_group_task', methods=['POST'])
 @login_required
 def delete_group_task():
-    if utils.validate_ownership(current_user.id, request.form['group_id']):
-        if Task.query.filter_by(id=request.form['task_id']).first():
-            task = Task.query.filter_by(id=request.form['task_id']).first()
+    if utils.validate_ownership(int(current_user.id), int(request.form['group_id'])):
+        if Task.query.filter_by(id=int(request.form['task_id'])).first():
+            task = Task.query.filter_by(id=int(request.form['task_id'])).first()
             db.session.delete(task)
             db.session.commit()
             return Validity(True).get_resp()
@@ -256,7 +256,7 @@ def delete_group_task():
 def create_group():
     form = request.form
     group = Group(name=form['name'],
-                  owner_id=current_user.id,
+                  owner_id=int(current_user.id),
                   info=('' if 'info' not in form else form['info']))
     db.session.add(group)
     db.session.commit()
@@ -268,9 +268,9 @@ def create_group():
 @app.route('/delete_group', methods=['POST'])
 @login_required
 def delete_group():
-    if utils.validate_groupid(group_id=request.form['group_id']):
-        if utils.validate_ownership(current_user.id, request.form['group_id']):
-            group = Group.query.filter_by(id=request.form['group_id']).first()
+    if utils.validate_groupid(group_id=int(request.form['group_id'])):
+        if utils.validate_ownership(int(current_user.id), int(request.form['group_id'])):
+            group = Group.query.filter_by(id=int(request.form['group_id'])).first()
             db.session.delete(group)
             db.session.commit()
             return Validity(True).get_resp()
@@ -284,10 +284,10 @@ def delete_group():
 @app.route('/join_group', methods=['POST'])
 @login_required
 def join_group():
-    if utils.validate_groupid(group_id=request.form['group_id']):
-        if not utils.validate_membership(current_user.id, request.form['group_id']):
-            group = Group.query.filter_by(id=request.form['group_id']).first()
-            group.add_member(current_user.id)
+    if utils.validate_groupid(group_id=int(request.form['group_id'])):
+        if not utils.validate_membership(int(current_user.id), int(request.form['group_id'])):
+            group = Group.query.filter_by(id=int(request.form['group_id'])).first()
+            group.add_member(int(current_user.id))
             db.session.commit()
             return Validity(True).get_resp()
         else:
@@ -300,10 +300,10 @@ def join_group():
 @app.route('/quit_group', methods=['POST'])
 @login_required
 def quit_group():
-    if utils.validate_groupid(group_id=request.form['group_id']):
-        if utils.validate_membership(current_user.id, request.form['group_id']) and not utils.validate_ownership(current_user.id, request.form['group_id']):
-            group = Group.query.filter_by(id=request.form['group_id']).first()
-            group.delete_member(current_user.id)
+    if utils.validate_groupid(group_id=int(request.form['group_id'])):
+        if utils.validate_membership(int(current_user.id), int(request.form['group_id'])) and not utils.validate_ownership(int(current_user.id), int(request.form['group_id'])):
+            group = Group.query.filter_by(id=int(request.form['group_id'])).first()
+            group.delete_member(int(current_user.id))
             db.session.commit()
             return Validity(True).get_resp()
         else:
@@ -316,10 +316,10 @@ def quit_group():
 @app.route('/add_member', methods=['POST'])
 @login_required
 def add_member():
-    if utils.validate_groupid(group_id=request.form['group_id']):
-        if not utils.validate_membership(request.form['user_id'], request.form['group_id']):
-            group = Group.query.filter_by(id=request.form['group_id']).first()
-            group.add_member(request.form['user_id'])
+    if utils.validate_groupid(group_id=int(request.form['group_id'])):
+        if not utils.validate_membership(int(request.form['user_id']), int(request.form['group_id'])):
+            group = Group.query.filter_by(id=int(request.form['group_id'])).first()
+            group.add_member(int(request.form['user_id']))
             db.session.commit()
             return Validity(True).get_resp()
         else:
@@ -332,10 +332,10 @@ def add_member():
 @app.route('/delete_member', methods=['POST'])
 @login_required
 def delete_member():
-    if utils.validate_groupid(group_id=request.form['group_id']):
-        if utils.validate_membership(request.form['user_id'], request.form['group_id']) and not utils.validate_ownership(request.form['user_id'], request.form['group_id']):
-            group = Group.query.filter_by(id=request.form['group_id']).first()
-            group.delete_member(request.form['user_id'])
+    if utils.validate_groupid(group_id=int(request.form['group_id'])):
+        if utils.validate_membership(int(request.form['user_id']), int(request.form['group_id'])) and not utils.validate_ownership(int(request.form['user_id']), int(request.form['group_id'])):
+            group = Group.query.filter_by(id=int(request.form['group_id'])).first()
+            group.delete_member(int(request.form['user_id']))
             db.session.commit()
             return Validity(True).get_resp()
         else:
@@ -350,8 +350,8 @@ def delete_member():
 @app.route('/get_task', methods=['POST'])
 @login_required
 def get_task():
-    if utils.validate_taskid(request.form['task_id']):
-        task = Task.query.filter_by(id=request.form['task_id']).first()
+    if utils.validate_taskid(int(request.form['task_id'])):
+        task = Task.query.filter_by(id=int(request.form['task_id'])).first()
         return Validity(True, ret_map=task.get_map_info())
     else:
         return Validity(False, 'Invalid task id').get_resp()
@@ -367,22 +367,22 @@ def get_task():
 #        ret.append(task.get_info_map())
 #    return Validity(True, {'task': ret}).get_resp() 
 #    #'get tasklist.'#Task.query.filter_by(id=int(user_id)).first()
-#    #User.get_tasklist_resp(user_id=current_user.id)
+#    #User.get_tasklist_resp(user_id=int(current_user.id))
 
 
 # Update task info, include finishing the task
 @app.route('/update_task', methods=['POST'])
 @login_required
 def update_task():
-    if utils.validate_taskid(request.form['task_id']):
-        if utils.validate_task_ownership(current_user.id, request.form['task_id']):
-            task = Task.query.filter_by(id=request.form['task_id']).first()
+    if utils.validate_taskid(int(request.form['task_id'])):
+        if utils.validate_task_ownership(int(current_user.id), int(request.form['task_id'])):
+            task = Task.query.filter_by(id=int(request.form['task_id'])).first()
             task.update(# owner_id=None, # I don't think any user have the authority to change task's owner
                         title=(None if 'title' not in request.form else request.form['title']),
                         finish_time=(None if 'finish_time' not in request.form else request.form['finish_time']),
                         status=(None if 'status' not in request.form else request.form['status']),
-                        publicity=(None if 'publicity' not in request.form else request.form['publicity']),
-                        group_id=(None if 'group_id' not in request.form else request.form['group_id']),
+                        publicity=(None if 'publicity' not in request.form else int(request.form['publicity'])),
+                        group_id=(None if 'group_id' not in request.form else int(request.form['group_id'])),
                         info=(None if 'info' not in request.form else request.form['info']))
             db.session.commit()
             return Validity(True).get_resp()
@@ -395,7 +395,7 @@ def update_task():
 #@app.route('/finish_task', methods=['POST'])
 #@login_required
 #def finish_task():
-#    if Task.finish_task(user_id=current_user.id, task_id=request.form['task_id']):
+#    if Task.finish_task(user_id=int(current_user.id), task_id=int(request.form['task_id'])):
 #        return Validity(True).get_resp()
 #    else:
 #        return Validity(False, 'Invalid task id').get_resp()
@@ -405,7 +405,7 @@ def update_task():
 @login_required
 def create_task():
     form = request.form
-    task = Task(owner_id=current_user.id,
+    task = Task(owner_id=int(current_user.id),
                 title=form['title'],
                 finish_time=form['deadline'],
                 status=(0 if 'status' not in form else form['status']),
@@ -420,8 +420,8 @@ def create_task():
 @app.route('/delete_task', methods=['POST'])
 @login_required
 def delete_task():
-    if Task.validate_task_id(task_id=request.form['task_id']):
-        task = Task.query.filter_by(id=request.form['task_id']).first()
+    if Task.validate_task_id(task_id=int(request.form['task_id'])):
+        task = Task.query.filter_by(id=int(request.form['task_id'])).first()
         db.session.delete(task)
         db.session.commit()
         return Validity(True).get_resp()
@@ -484,28 +484,36 @@ def test():
     db.session.add(user)
     user = User(username='admin2', password='admin2')
     db.session.add(user)
-#    db.session.commit()
-    task = Task(1, 'ok', datetime.datetime.now())
-    db.session.add(task)
-    task = Task(1, 'ok1', datetime.datetime.now())
-    db.session.add(task)
     db.session.commit()
+#    task = Task(1, 'ok', datetime.datetime.now())
+#    db.session.add(task)
+#    task = Task(1, 'ok1', datetime.datetime.now())
+#    db.session.add(task)
+#    db.session.commit()
     user1 = User.query.filter_by(id=1).first()
     user2 = User.query.filter_by(id=2).first()
-    user1.add_friend(2)
-    print(user1.get_friends())
-    print(user2.get_friends())
-    db.session.commit()
-    group = Group('test group', owner_id=1)
-    db.session.add(group)
-    group.add_member(2)
-    db.session.commit()
-    print(user1.get_ownership())
-    print(group.get_members())
-    print(user2.get_groups())
+#    user1.add_friend(2)
+#    print(user1.get_friends())
+#    print(user2.get_friends())
+#    db.session.commit()
+#    group = Group('test group', owner_id=1)
+#    db.session.add(group)
+#    group.add_member(2)
+#    db.session.commit()
+#    print(user1.get_ownership())
+#    print(group.get_members())
+#    print(user2.get_groups())
+    
 #    print(User.query.filter_by(id=1).first().__friends)
 #    print(User.query.filter_by(id=2).first().__friends)
 #    print(user.tasks)
+    login_user(user1, remember=True)
+    print('logged in as ' + current_user.username)
+    print([task.get_info_map() for task in current_user.get_tasks()])
+    logout_user()
+    print([task.get_info_map() for task in current_user.get_tasks()])
+#    print('logged in as ' + current_user.username)
+    
     return 'successful!'
 
 
