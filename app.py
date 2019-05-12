@@ -27,20 +27,6 @@ login_manager.session_protection = "strong"
 login_manager.login_view = "login"
 
 
-# Get info of another user
-@app.route('/get_user', methods=['POST'])
-@login_required
-def get_user():
-    pass # TODO
-
-
-# Update the info of current user
-@app.route('/update_user', methods=['POST'])
-@login_required
-def update_user():
-    pass # TODO
-
-
 # Refreshing: check any updates on dataset and renew status of tasks
 @app.route('/refresh')
 @login_required
@@ -49,48 +35,98 @@ def refresh():
     print(current_user)
     print(current_user.is_anonymous)
     return current_user.get_resp()
+
+
+#================ USER FUNCTION =============
+# Get info of another user
+@app.route('/get_user', methods=['POST'])
+@login_required
+def get_user():
+    if utils.validate_userid(request.form['user_id']):
+        user = User.query.filter_by(id = request.form['user_id']).first()
+        return  Validity(True, ret_map=user.get_map_info())
+    else:
+        return Validity(False, 'Invalid user id').get_resp()
+
+
+# Update the info of current user
+@app.route('/update_user', methods=['POST'])
+@login_required
+def update_user():
+    current_user.update(username=(None if 'username' not in request.form else request.form['username']),
+                password=(None if 'password' not in request.form else request.form['password']),
+                 name=(None if 'name' not in request.form else request.form['name']),
+                 info=('' if 'info' not in request.form else request.form['info']))
+    return Validity(True).get_resp()
+
     
 @app.route('/get_friendlist', methods=['GET'])
 @login_required
 def get_friendlist():
-    return User.get_friendlist_resp(user_id=current_user.id)
+    friends = current_user.get_friends()
+    ret = [friend.get_info_map() for friend in friends]
+    return Validity(True, {'task list': ret}).get_resp()
 
 
+@app.route('/get_grouplist', methods=['GET'])
+@login_required
+def get_grouplist():
+    groups = current_user.get_groups()
+    ret = [group.get_info_map() for group in groups]
+    return Validity(True, {'group list': ret}).get_resp()
 
+
+# Get all tasks of the user
+@app.route('/get_tasklist', methods=['GET'])
+@login_required
+def get_tasklist():
+    tasks = current_user.get_tasks()
+    ret = [task.get_info_map() for task in tasks]
+    return Validity(True, {'task list': ret}).get_resp()
+
+
+# Get public tasks of friends
 @app.route('/get_friend_tasklist', methods=['GET'])
 @login_required
 def get_friend_tasklist():
-    return User.get_friend_tasklist_resp(user_id=current_user.id)
+    friends = current_user.get_friends()
+    ret = []
+    for friend in friends:
+        ret.extends([task.get_info_map() for task in friend.get_public_tasks()])
+    return Validity(True, {'friend task list': ret}).get_resp()
 
 
+# Get group tasks of the user
 @app.route('/get_group_tasklist', methods=['GET'])
 @login_required
 def get_group_tasklist():
-    return User.get_group_tasklist_resp(user_id=current_user.id)
+    groups = current_user.get_groups()
+    ret = []
+    for group in groups:
+        ret.extends([task.get_info_map() for task in group.get_tasks()])
+    return Validity(True, {'group task list': ret}).get_resp()
 
 
 @app.route('/add_friend', methods=['POST'])
 @login_required
 def add_friend():
-    friend_id = User.get_friend_id(username=request.form['friend_username'])
-    if friend_id:
-        if not User.add_friend(user_id=current_user.id, friend_id=friend_id):
-            return Validity(False, 'Friend already exists in your friend list.').get_resp()
-        return User.get_friendlist_resp(user_id=current_user.id)
-    else:
-        return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
+    if not utils.validate_userid(request.form['friend_id']) or utils.validate_friendship(current_user.id, request.form['friend_id']):
+        return Validity(False, 'User ' + request.form['friend_id'] + ' does not exist.').get_resp()
+    friend = User.query.filter_by(id = request.form['friend_id']).first()
+    current_user.add_friend(request.form['friend_id'])
+    friend.add_friend(current_user.id)
+    return Validity(True).get_resp()
 
 
 @app.route('/delete_friend', methods=['POST'])
 @login_required
 def delete_friend():
-    friend_id = User.get_friend_id(username=request.form['friend_username'])
-    if friend_id:
-        if not User.delete_friend(user_id=current_user.id, friend_id=friend_id):
-            return Validity(False, 'Invalid friend id.').get_resp()
-        return Validity(True).get_resp()
-    else:
-        return Validity(False, 'User ' + request.form['friend_username'] + ' does not exist.').get_resp()
+    if not utils.validate_userid(request.form['friend_id']) or not utils.validate_friendship(current_user.id, request.form['friend_id']):
+        return Validity(False, 'User ' + request.form['friend_id'] + ' does not exist.').get_resp()
+    friend = User.query.filter_by(id = request.form['friend_id']).first()
+    current_user.delete_friend(request.form['friend_id'])
+    friend.delete_friend(current_user.id)
+    return Validity(True).get_resp()
 
 #================ GROUP FUNCTION =============
 # Get info of a group
@@ -98,11 +134,11 @@ def delete_friend():
 @login_required
 def get_group():
     if utils.validate_groupid(request.form['group_id']):
-        if utils.validate_membership(current_user.id, request.form['group_id']):
-            group = Group.query.filter_by(id = request.form['group_id'])
-            return  Validity(True, ret_map=group.get_map_info())
-        else:
-            return Validity(False, 'No access').get_resp()
+#        if utils.validate_membership(current_user.id, request.form['group_id']):
+        group = Group.query.filter_by(id = request.form['group_id'])
+        return  Validity(True, ret_map=group.get_map_info())
+#        else:
+#            return Validity(False, 'No access').get_resp()
     else:
         return Validity(False, 'Invalid group id').get_resp()
 
@@ -316,12 +352,12 @@ def get_tasklist(): # TODO(interaction): For test, implement it correctely
 def update_task():
     if Task.validate_task_id(current_user.id, request.form['task_id']):
         Task.update(owner_id=None, # I don't think any user have the authority to change task's owner
-                    title=(None if 'title' not in form else form['title']),
-                    finish_time=(None if 'finish_time' not in form else form['finish_time']),
-                    status=(None if 'status' not in form else form['status']),
-                    publicity=(None if 'publicity' not in form else form['publicity']),
-                    group_id=(None if 'group_id' not in form else form['group_id']),
-                    info=('' if 'info' not in form else form['info']))
+                    title=(None if 'title' not in request.form else request.form['title']),
+                    finish_time=(None if 'finish_time' not in request.form else request.form['finish_time']),
+                    status=(None if 'status' not in request.form else request.form['status']),
+                    publicity=(None if 'publicity' not in request.form else request.form['publicity']),
+                    group_id=(None if 'group_id' not in request.form else request.form['group_id']),
+                    info=('' if 'info' not in request.form else request.form['info']))
         return Validity(True).get_resp()
     else:
         return Validity(False, 'Invalid task id').get_resp()

@@ -45,13 +45,13 @@ def validate_ownership(user_id, group_id):
 
 def validate_membership(user_id, group_id):
     group = Group.query.filter_by(id=group_id).first()
-    for member in group.__members:
-        if user_id == member.get_id():
-            return True
-    return False
+    if group is not None and user_id in group.__members:
+        return True
+    else:
+        return False
 
 
-# Ownership if a task
+# Ownership of a task
 def validate_task_ownership(user_id, task_id):
     pass
 

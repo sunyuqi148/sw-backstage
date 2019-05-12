@@ -83,20 +83,20 @@ class User(UserMixin, db.Model):
     def get_resp(self):
         pass
     
-    def get_friendlist_resp(self):
+    def get_friends(self):
+        pass
+    
+    def get_groups(self):
         pass
     
     # rets: a json string of all tasks belonging to user
-    def get_tasklist_resp(self):
+    def get_tasks(self):
         pass
     
-    # rets: a json string of all tasks belonging to user's friends
-    def get_friend_tasklist_resp(self):
+    # rets: a json string of public tasks belonging to user
+    def get_public_tasks(self):
         pass
-    
-    # rets: a json string of all tasks belonging to groups the user belongs to
-    def get_group_tasklist_resp(self):
-        pass
+
     
     def update(self, 
                username=None,
@@ -115,12 +115,12 @@ class User(UserMixin, db.Model):
             
     # rets: False if friend_id is already a friend of user
     #       True, else
-    def add_friend(user_id, friend_id):
+    def add_friend(self, friend_id):
         pass
             
     # rets: False if user does not have this friend
     #       True, else
-    def delete_friend(user_id, friend_id):
+    def delete_friend(self, friend_id):
         pass
 
 
@@ -151,8 +151,15 @@ class Group(db.Model):
         return self.id
     
     def get_members(self):
-        return self.__members
+        members = []
+        for user_id in self.__members:
+            user = User.query.filter_by(id=user_id).first()
+            members.append(user)
+        return members
     
+    def get_tasks(self):
+        pass #TODO
+
     def update(self, 
                name=None,
                owner_id=None,
