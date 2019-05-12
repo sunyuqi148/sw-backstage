@@ -64,16 +64,14 @@ def update_user():
 @app.route('/get_friendlist', methods=['GET'])
 @login_required
 def get_friendlist():
-    friends = current_user.get_friends()
-    ret = [friend.get_info_map() for friend in friends]
+    ret = [friend.get_info_map() for friend in current_user.get_friends()]
     return Validity(True, {'task list': ret}).get_resp()
 
 
 @app.route('/get_grouplist', methods=['GET'])
 @login_required
 def get_grouplist():
-    groups = current_user.get_groups()
-    ret = [group.get_info_map() for group in groups]
+    ret = [group.get_info_map() for group in current_user.get_groups()]
     return Validity(True, {'group list': ret}).get_resp()
 
 
@@ -81,8 +79,7 @@ def get_grouplist():
 @app.route('/get_tasklist', methods=['GET'])
 @login_required
 def get_tasklist():
-    tasks = current_user.get_tasks()
-    ret = [task.get_info_map() for task in tasks]
+    ret = [task.get_info_map() for task in current_user.get_tasks()]
     return Validity(True, {'task list': ret}).get_resp()
 
 
@@ -90,9 +87,8 @@ def get_tasklist():
 @app.route('/get_friend_tasklist', methods=['GET'])
 @login_required
 def get_friend_tasklist():
-    friends = current_user.get_friends()
     ret = []
-    for friend in friends:
+    for friend in current_user.get_friends():
         ret.extends([task.get_info_map() for task in friend.get_public_tasks()])
     return Validity(True, {'friend task list': ret}).get_resp()
 
@@ -101,9 +97,8 @@ def get_friend_tasklist():
 @app.route('/get_group_tasklist', methods=['GET'])
 @login_required
 def get_group_tasklist():
-    groups = current_user.get_groups()
     ret = []
-    for group in groups:
+    for group in current_user.get_groups():
         ret.extends([task.get_info_map() for task in group.get_tasks()])
     return Validity(True, {'group task list': ret}).get_resp()
 
@@ -390,7 +385,6 @@ def create_task():
                 group_id=(None if 'group_id' not in form else form['group_id']),
                 info=('' if 'info' not in form else form['info']))
     db.session.add(task)
-    current_user.add_task(task.get_id())
     db.session.commit()
     return Validity(True, task.get_info_map()).get_resp()
 
@@ -399,7 +393,6 @@ def create_task():
 @login_required
 def delete_task():
     if Task.validate_task_id(task_id=request.form['task_id']):
-        #TODO(database): delete a task finished
         task = Task.query.filter_by(id=request.form['task_id']).first()
         db.session.delete(task)
         db.session.commit()
@@ -430,8 +423,8 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     print(request.form['username'], request.form['password'])
-    user = User.query.filter_by(__username=request.form['username'],
-                                __password=request.form['password']
+    user = User.query.filter_by(username=request.form['username'],
+                                password=request.form['password']
                                 ).first()
     if user:
         login_user(user, remember=True)

@@ -50,9 +50,9 @@ class User(UserMixin, db.Model):
     # id, username, password, name, info, tasks, friends
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
-    __username = db.Column(db.String(24), nullable=False,
+    username = db.Column(db.String(24), nullable=False,
                          unique=True)
-    __password = db.Column(db.String(24), nullable=False)
+    password = db.Column(db.String(24), nullable=False)
     __name = db.Column(db.String(24), nullable=False)
     __info = db.Column(db.String(1024)) 
     __tasks = db.relationship('Task', backref='owner', lazy='subquery')
@@ -71,8 +71,8 @@ class User(UserMixin, db.Model):
                  name=None,
                  info=''
                  ):
-        self.__username = username
-        self.__password = password
+        self.username = username
+        self.password = password
         if name is None:
             self.__name = self.__username
         else:
@@ -111,9 +111,9 @@ class User(UserMixin, db.Model):
                info=None
                ):
         if username is not None and not User.query.filter_by(__username=username).first():
-            self.__username = username
+            self.username = username
         if password is not None:
-            self.__password = password
+            self.password = password
         if name is not None:
             self.__name = name
         if info is not None:
@@ -142,7 +142,7 @@ class Group(db.Model):
     __tablename__ = 'group'
     id = db.Column(db.Integer, primary_key=True)
     __name = db.Column(db.String(24), nullable=False)
-    __owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     __info = db.Column(db.String(1024))
     __tasks = db.relationship('Task',
                               backref='group',
@@ -156,7 +156,7 @@ class Group(db.Model):
     
     def __init__(self, name, owner_id, info=''):
         self.__name = name
-        self.__owner_id = owner_id
+        self.owner_id = owner_id
         self.__info = info
         user = User.query.filter_by(id=owner_id).first()
         self.__members.append(user)
@@ -194,14 +194,14 @@ class Group(db.Model):
         if name is not None:
             self.__name = name
         if owner_id is not None and User.query.filter_by(id=owner_id).first():
-            self.__owner_id = owner_id
+            self.owner_id = owner_id
         if info is not None:
             self.__info = info
             
     def get_info_map(self):
         return {'group_id': self.id,
                 'name': self.__name,
-                'owner_id':self.__owner_id,
+                'owner_id':self.owner_id,
                 'info': self.__info}
 
 
@@ -213,7 +213,7 @@ class Task(db.Model):
     # If group task, group_id is not none
     __tablename__ = 'task'
     id = db.Column(db.Integer, primary_key=True)
-    __owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     __title = db.Column(db.String(1024), nullable=False)
     __create_time = db.Column(db.DateTime, nullable=False)
     __finish_time = db.Column(db.DateTime, nullable=False)
@@ -228,7 +228,7 @@ class Task(db.Model):
                  group_id=None,
                  info=''
                  ):
-        self.__owner_id = owner_id
+        self.owner_id = owner_id
         self.__title = title
         self.__create_time = datetime.datetime.now()
         self.__finish_time = finish_time
@@ -266,7 +266,7 @@ class Task(db.Model):
                info=None
                ):
         if owner_id is not None and User.query.filter_by(id=owner_id).first():
-            self.__owner_id = owner_id
+            self.owner_id = owner_id
         if title is not None:
             self.__title = title
         if finish_time is not None:
