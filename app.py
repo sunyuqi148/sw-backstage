@@ -203,8 +203,6 @@ def create_group_task():
                     group_id=(None if 'group_id' not in form else form['group_id']),
                     info=('' if 'info' not in form else form['info']))
         db.session.add(task)
-        group = Group.query.filter_by(id=request.form['group.id']).first()
-        group.add_task(task_id=task.get_id)
         db.session.commit()
         return Validity(True, task.get_info_map()).get_resp()
     else:

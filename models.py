@@ -74,7 +74,7 @@ class User(UserMixin, db.Model):
         self.username = username
         self.password = password
         if name is None:
-            self.__name = self.__username
+            self.__name = self.username
         else:
             self.__name = name
         self.__info = info
