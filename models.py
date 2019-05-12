@@ -46,7 +46,6 @@ friendship = db.Table('friendship',
 
 
 # All users
-# TODO: add visibility to members of this class
 class User(UserMixin, db.Model):
     # id, username, password, name, info, tasks, friends
     __tablename__ = "user"
@@ -56,13 +55,17 @@ class User(UserMixin, db.Model):
     __password = db.Column(db.String(24), nullable=False)
     __name = db.Column(db.String(24), nullable=False)
     __info = db.Column(db.String(1024)) 
-    __tasks = db.relationship('Task', backref='user', lazy='dynamic')
+    __tasks = db.relationship('Task', backref='owner', lazy='subquery')
     __friends = db.relationship('User', #defining the relationship, User is left side entity
                                 secondary = friendship, 
                                 primaryjoin = (friendship.c.user_id == id), 
                                 secondaryjoin = (friendship.c.friend_id == id),
                                 lazy = 'subquery'
-                            )
+                                )
+    __ownership = db.relationship('Group',
+                                  backref='owner',
+                                  lazy='subquery'
+                                  )
     
     def __init__(self, username, password,
                  name=None,
@@ -84,19 +87,22 @@ class User(UserMixin, db.Model):
         pass
     
     def get_friends(self):
-        pass
+        return self.__friends
     
     def get_groups(self):
-        pass
-    
+        return self.groups
+        
+    def get_ownership(self):
+        return self.__ownership
+
     # rets: a json string of all tasks belonging to user
     def get_tasks(self):
-        pass
+        return self.__tasks
     
     # rets: a json string of public tasks belonging to user
     def get_public_tasks(self):
-        pass
-
+        ret = [task for task in self.__tasks if task.get_publicity() == 0]
+        return ret
     
     def update(self, 
                username=None,
@@ -104,7 +110,7 @@ class User(UserMixin, db.Model):
                name=None,
                info=None
                ):
-        if username is not None and User.query.filter_by(__username=username).first():
+        if username is not None and not User.query.filter_by(__username=username).first():
             self.__username = username
         if password is not None:
             self.__password = password
@@ -112,16 +118,22 @@ class User(UserMixin, db.Model):
             self.__name = name
         if info is not None:
             self.__info = info
-            
-    # rets: False if friend_id is already a friend of user
-    #       True, else
+
     def add_friend(self, friend_id):
-        pass
-            
-    # rets: False if user does not have this friend
-    #       True, else
+        friend = User.query.filter_by(id=friend_id).first()
+        self.__friends.append(friend)
+
     def delete_friend(self, friend_id):
-        pass
+        friend = User.query.filter_by(id=friend_id).first()
+        if friend in self.__friends:
+            self.__friends.remove(friend)
+    
+#    def add_task(self, task_id):
+#        self.__tasks.append(task_id)
+#        
+#    def delete_task(self, task_id):
+#        if task_id in self.__tasks:
+#            self.__tasks.remove(task_id)
 
 
 # All groups
@@ -134,7 +146,7 @@ class Group(db.Model):
     __info = db.Column(db.String(1024))
     __tasks = db.relationship('Task',
                               backref='group',
-                              lazy='dynamic'
+                              lazy='subquery'
                               )
     __members = db.relationship('User',
                                 secondary=membership,
@@ -146,19 +158,33 @@ class Group(db.Model):
         self.__name = name
         self.__owner_id = owner_id
         self.__info = info
+        user = User.query.filter_by(id=owner_id).first()
+        self.__members.append(user)
         
     def get_id(self):
         return self.id
     
+    def add_member(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+        self.__members.append(user)
+        
+    def delete_member(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+        if user in self.__members:
+            self.__members.remove(user)
+    
     def get_members(self):
-        members = []
-        for user_id in self.__members:
-            user = User.query.filter_by(id=user_id).first()
-            members.append(user)
-        return members
+        return self.__members
+    
+#    def add_task(self, task_id):
+#        task = Task.query.filter_by(id=task_id).first()
+#        self.__tasks.append(task)
+#        
+#    def delete_task(self, task_id):
+#        pass #TODO
     
     def get_tasks(self):
-        pass #TODO
+        return self.__tasks
 
     def update(self, 
                name=None,
@@ -216,6 +242,9 @@ class Task(db.Model):
         
     def get_id(self):
         return self.id
+    
+    def get_publicity(self):
+        return self.__publicity
     
     # rets: a map includes valid=true and user_id
     def get_info_map(self):
