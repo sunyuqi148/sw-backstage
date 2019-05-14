@@ -405,9 +405,11 @@ def update_task():
 @login_required
 def create_task():
     form = request.form
+    print(current_user.id)
+    print(form)
     task = Task(owner_id=int(current_user.id),
                 title=form['title'],
-                finish_time=form['deadline'],
+                finish_time=(datetime.datetime.now() if 'deadline' not in form else form['deadline']),
                 status=(0 if 'status' not in form else form['status']),
                 publicity=(0 if 'publicity' not in form else form['publicity']),
                 group_id=(None if 'group_id' not in form else form['group_id']),
@@ -456,7 +458,7 @@ def login():
                                 ).first()
     if user:
         login_user(user, remember=True)
-        return redirect(url_for('get_tasklist')) #json.dumps({'valid': True, 'task': ret}) #'login succeeds'
+        return Validity(True).get_resp()#redirect(url_for('get_tasklist')) #json.dumps({'valid': True, 'task': ret}) #'login succeeds'
     else:
         return Validity(False, 'Login fails: Invalid username or password.').get_resp() #'login fails'
 
@@ -518,6 +520,6 @@ def test():
 
 
 if __name__ == "__main__":
-#    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
+#    app.run(host='127.0.0.1', port=5000, debug=True)
     
