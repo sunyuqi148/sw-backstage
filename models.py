@@ -16,10 +16,10 @@ class Validity:
     # args: valid
     # if True, create with return information
     def __init__(self, valid = False,
-                 ret = ''):
+                 ret = None):
 #                 ret_map = {}):
         if valid:
-            self.__map = ret
+            self.__map = ret if ret != None else {}
         else: 
             self.__map = {}
             self.__map['error_info'] = info
