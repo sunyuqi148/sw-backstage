@@ -16,12 +16,14 @@ class Validity:
     # args: valid
     # if True, create with return information
     def __init__(self, valid = False,
-                 info = '',
-                 ret_map = {}):
-        if valid: self.__map = ret_map
-        else: self.__map = {}
+                 ret = ''):
+#                 ret_map = {}):
+        if valid:
+            self.__map = ret
+        else: 
+            self.__map = {}
+            self.__map['error_info'] = info
         self.__map['valid'] = valid
-        self.__map['error_info'] = info
    
     # rets: a json string of validity
     def get_resp(self):

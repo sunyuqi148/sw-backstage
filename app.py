@@ -44,7 +44,7 @@ def refresh():
 def get_user():
     if utils.validate_userid(int(request.form['user_id'])):
         user = User.query.filter_by(id=int(request.form['user_id'])).first()
-        return Validity(True, ret_map=user.get_map_info())
+        return Validity(True, user.get_map_info())
     else:
         return Validity(False, 'Invalid user id').get_resp()
 
@@ -134,7 +134,7 @@ def get_group():
     if utils.validate_groupid(int(request.form['group_id'])):
 #        if utils.validate_membership(current_user.id, int(request.form['group_id'])):
         group = Group.query.filter_by(id = int(request.form['group_id'])).first()
-        return Validity(True, ret_map=group.get_map_info())
+        return Validity(True, group.get_map_info())
 #        else:
 #            return Validity(False, 'No access').get_resp()
     else:
@@ -352,7 +352,7 @@ def delete_member():
 def get_task():
     if utils.validate_taskid(int(request.form['task_id'])):
         task = Task.query.filter_by(id=int(request.form['task_id'])).first()
-        return Validity(True, ret_map=task.get_map_info())
+        return Validity(True, task.get_map_info())
     else:
         return Validity(False, 'Invalid task id').get_resp()
     
