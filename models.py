@@ -22,7 +22,7 @@ class Validity:
             self.__map = ret if ret != None else {}
         else: 
             self.__map = {}
-            self.__map['error_info'] = info
+            self.__map['error_info'] = ret
         self.__map['valid'] = valid
    
     # rets: a json string of validity
