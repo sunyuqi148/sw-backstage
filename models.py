@@ -106,6 +106,12 @@ class User(UserMixin, db.Model):
         ret = [task for task in self.__tasks if task.get_publicity() == 0]
         return ret
     
+    # rets: a dict of user's info
+    def get_info_map(self):
+        return {'username': self.username,
+                'name': self.__name,
+                'info': self.__info}
+
     def update(self, 
                username=None,
                password=None,
