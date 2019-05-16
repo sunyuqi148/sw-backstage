@@ -132,7 +132,12 @@ class User(UserMixin, db.Model):
         friend = User.query.filter_by(id=friend_id).first()
         if friend in self.__friends:
             self.__friends.remove(friend)
-
+    
+    # rets: a dict of user's info
+    def get_info_map(self):
+        return {'username': self.username,
+                'name': self.__name,
+                'info': self.__info}
 
 # All groups
 class Group(db.Model):
