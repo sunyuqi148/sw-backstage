@@ -16,7 +16,7 @@ app = Flask(__name__)
 SECRET_KEY = 'This is my key'
 app.secret_key = SECRET_KEY
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test?charset=utf8"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
 db.drop_all(app=app) # Only for debugging
@@ -480,20 +480,20 @@ def load_user(user_id):
 
 @app.route('/', methods=['GET', 'POST'])
 def test():
-    user = User(username='admin', password='admin')
+    user = User(username='管理员', password='admin')
     db.session.add(user)
-    user = User(username='admin1', password='admin1')
-    db.session.add(user)
-    user = User(username='admin2', password='admin2')
-    db.session.add(user)
+#    user = User(username='admin1', password='admin1')
+#    db.session.add(user)
+#    user = User(username='admin2', password='admin2')
+#    db.session.add(user)
     db.session.commit()
 #    task = Task(1, 'ok', datetime.datetime.now())
 #    db.session.add(task)
 #    task = Task(1, 'ok1', datetime.datetime.now())
 #    db.session.add(task)
 #    db.session.commit()
-    user1 = User.query.filter_by(id=1).first()
-    user2 = User.query.filter_by(id=2).first()
+#    user1 = User.query.filter_by(id=1).first()
+#    user2 = User.query.filter_by(id=2).first()
 #    user1.add_friend(2)
 #    print(user1.get_friends())
 #    print(user2.get_friends())
@@ -509,11 +509,11 @@ def test():
 #    print(User.query.filter_by(id=1).first().__friends)
 #    print(User.query.filter_by(id=2).first().__friends)
 #    print(user.tasks)
-    login_user(user1, remember=True)
-    print('logged in as ' + current_user.username)
-    print([task.get_info_map() for task in current_user.get_tasks()])
-    logout_user()
-    print([task.get_info_map() for task in current_user.get_tasks()])
+#    login_user(user1, remember=True)
+#    print('logged in as ' + current_user.username)
+#    print([task.get_info_map() for task in current_user.get_tasks()])
+#    logout_user()
+#    print([task.get_info_map() for task in current_user.get_tasks()])
 #    print('logged in as ' + current_user.username)
     
     return 'successful!'

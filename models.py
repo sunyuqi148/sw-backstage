@@ -52,7 +52,7 @@ class User(UserMixin, db.Model):
     # id, username, password, name, info, tasks, friends
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(24), nullable=False,
+    username = db.Column(db.String(1024), nullable=False,
                          unique=True)
     password = db.Column(db.String(24), nullable=False)
     __name = db.Column(db.String(24), nullable=False)
@@ -68,6 +68,9 @@ class User(UserMixin, db.Model):
                                   backref='owner',
                                   lazy='subquery'
                                   )
+    __table_args__ = {
+                    "mysql_charset" : "utf8"
+                    }
     
     def __init__(self, username, password,
                  name=None,
@@ -136,7 +139,7 @@ class Group(db.Model):
     # id, name, owner_id, info, tasks, members
     __tablename__ = 'group'
     id = db.Column(db.Integer, primary_key=True)
-    __name = db.Column(db.String(24), nullable=False)
+    __name = db.Column(db.String(1024), nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     __info = db.Column(db.String(1024))
     __tasks = db.relationship('Task',
@@ -148,6 +151,10 @@ class Group(db.Model):
                                 lazy='subquery',
                                 backref=db.backref('groups', lazy=True)
                                 )
+    
+    __table_args__ = {
+                    "mysql_charset" : "utf8"
+                    }
     
     def __init__(self, name, owner_id, info=''):
         self.__name = name
@@ -216,6 +223,10 @@ class Task(db.Model):
     __publicity = db.Column(db.Integer, nullable=False)
     __group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
     __info = db.Column(db.String(1024))
+    
+    __table_args__ = {
+                    "mysql_charset" : "utf8"
+                    }
     
     def __init__(self, owner_id, title, finish_time,
                  status=0,
