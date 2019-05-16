@@ -205,7 +205,7 @@ def create_group_task():
     if utils.validate_ownership(int(current_user.id), int(form['group_id'])):
         task = Task(owner_id=int(current_user.id),
                     title=form['title'],
-                    finish_time=form['deadline'],
+                    finish_time=utils.trans_to_date(form['deadline']),
                     status=(0 if 'status' not in form else form['status']),
                     publicity=2,
                     group_id=(None if 'group_id' not in form else int(form['group_id'])),
@@ -227,7 +227,7 @@ def update_group_task():
         if utils.validate_ownership(int(current_user.id), int(form['group_id'])):
             task.update(owner_id=None,
                         title=(None if 'title' not in form else form['title']),
-                        finish_time=(None if 'finish_time' not in form else form['finish_time']),
+                        finish_time=(None if 'finish_time' not in form else utils.trans_to_date(form['finish_time'])),
                         status=(None if 'status' not in form else form['status']),
                         publicity=(None if 'publicity' not in form else int(form['publicity'])),
                         group_id=(None if 'group_id' not in form else int(form['group_id'])),
@@ -396,7 +396,7 @@ def update_task():
             task = Task.query.filter_by(id=int(form['task_id'])).first()
             task.update(# owner_id=None, # I don't think any user have the authority to change task's owner
                         title=(None if 'title' not in form else form['title']),
-                        finish_time=(None if 'finish_time' not in form else form['finish_time']),
+                        finish_time=(None if 'finish_time' not in form else utils.trans_to_date(form['finish_time'])),
                         status=(None if 'status' not in form else form['status']),
                         publicity=(None if 'publicity' not in form else int(form['publicity'])),
                         group_id=(None if 'group_id' not in form else int(form['group_id'])),
@@ -426,7 +426,7 @@ def create_task():
     print(form)
     task = Task(owner_id=int(current_user.id),
                 title=form['title'],
-                finish_time=(datetime.datetime.now() if 'deadline' not in form else form['deadline']),
+                finish_time=(datetime.datetime.now() if 'deadline' not in form else utils.trans_to_date(form['deadline'])),
                 status=(0 if 'status' not in form else form['status']),
                 publicity=(0 if 'publicity' not in form else form['publicity']),
                 group_id=(None if 'group_id' not in form else form['group_id']),
