@@ -27,16 +27,6 @@ login_manager.session_protection = "strong"
 login_manager.login_view = "login"
 
 
-# Refreshing: check any updates on dataset and renew status of tasks
-@app.route('/refresh')
-@login_required
-def refresh():
-    #pass # TODO
-    print(current_user)
-    print(current_user.is_anonymous)
-    return current_user.get_resp()
-
-
 #================ USER FUNCTION =============
 # Get info of another user
 @app.route('/get_user', methods=['POST'])
