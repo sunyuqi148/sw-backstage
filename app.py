@@ -66,14 +66,16 @@ def update_user():
 @app.route('/get_friendlist', methods=['GET'])
 @login_required
 def get_friendlist():
-    ret = [friend.get_info_map() for friend in current_user.get_friends()]
+    ret = sorted([friend for friend in current_user.get_friends()])
+    ret = [friend.get_info_map() for friend in ret]
     return Validity(True, {'friend list': ret}).get_resp()
 
 
 @app.route('/get_grouplist', methods=['GET'])
 @login_required
 def get_grouplist():
-    ret = [group.get_info_map() for group in current_user.get_groups()]
+    ret = sorted([group for group in current_user.get_groups()])
+    ret = [group.get_info_map() for group in ret]
     return Validity(True, {'group list': ret}).get_resp()
 
 
@@ -81,7 +83,8 @@ def get_grouplist():
 @app.route('/get_tasklist', methods=['GET'])
 @login_required
 def get_tasklist():
-    ret = [task.get_info_map() for task in current_user.get_tasks()]
+    ret = sorted([task for task in current_user.get_tasks()])
+    ret = [task.get_info_map() for task in ret]
     return Validity(True, {'task list': ret}).get_resp()
 
 
@@ -91,7 +94,9 @@ def get_tasklist():
 def get_friend_tasklist():
     ret = []
     for friend in current_user.get_friends():
-        ret.extends([task.get_info_map() for task in friend.get_public_tasks()])
+        ret.extends([task for task in friend.get_public_tasks()])
+    ret = sorted(ret)
+    ret = [task.get_info_map() for task in ret]
     return Validity(True, {'friend task list': ret}).get_resp()
 
 
@@ -101,7 +106,9 @@ def get_friend_tasklist():
 def get_group_tasklist():
     ret = []
     for group in current_user.get_groups():
-        ret.extends([task.get_info_map() for task in group.get_tasks()])
+        ret.extends([task for task in group.get_tasks()])
+    ret = sorted(ret)
+    ret = [task.get_info_map() for task in ret]
     return Validity(True, {'group task list': ret}).get_resp()
 
 
@@ -154,7 +161,8 @@ def get_group_task():
     if utils.validate_groupid(int(form['group_id'])):
         if utils.validate_membership(int(current_user.id), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
-            ret = [task.get_info_map() for task in group.get_tasks()]
+            ret = sorted([task for task in group.get_tasks()])
+            ret = [group.get_info_map() for group in ret]
             return Validity(True, {'task list': ret}).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
@@ -170,7 +178,8 @@ def get_group_member():
     if utils.validate_groupid(int(form['group_id'])):
         if utils.validate_membership(int(current_user.id), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
-            ret = [user.get_info_map() for user in group.get_members()]
+            ret = sorted([user for user in group.get_members()])
+            ret = [user.get_info_map() for user in ret]
             return Validity(True, {'member list': ret}).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
