@@ -183,7 +183,7 @@ def get_group_member():
 @login_required
 def update_group():
     form = {k:request.form[k].strip() for k in request.form}
-    if utils.validate_groupid(int(form['task_id'])):
+    if utils.validate_groupid(int(form['group_id'])):
         if utils.validate_ownership(int(current_user.id), int(form['group_id'])):
             group = Group.query.filter_by(id = int(form['group_id'])).first()
             group.update(name=(None if 'name' not in form else form['name']),
