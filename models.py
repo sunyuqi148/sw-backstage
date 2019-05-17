@@ -55,7 +55,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(1024), nullable=False,
                          unique=True)
     password = db.Column(db.String(24), nullable=False)
-    __name = db.Column(db.String(24), nullable=False)
+    name = db.Column(db.String(24), nullable=False)
     __info = db.Column(db.String(1024)) 
     __tasks = db.relationship('Task', backref='owner', lazy='subquery')
     __friends = db.relationship('User', #defining the relationship, User is left side entity
@@ -79,11 +79,14 @@ class User(UserMixin, db.Model):
         self.username = username
         self.password = password
         if name is None:
-            self.__name = self.username
+            self.name = self.username
         else:
-            self.__name = name
+            self.name = name
         self.__info = info
         
+    def __cmp__(self, other):
+        return self.name < other.name
+    
     def get_id(self):
         return self.id
     
@@ -116,7 +119,7 @@ class User(UserMixin, db.Model):
         if password is not None:
             self.password = password
         if name is not None:
-            self.__name = name
+            self.name = name
         if info is not None:
             self.__info = info
 
@@ -132,7 +135,7 @@ class User(UserMixin, db.Model):
     # rets: a dict of user's info
     def get_info_map(self):
         return {'username': self.username,
-                'name': self.__name,
+                'name': self.name,
                 'info': self.__info}
 
 # All groups
@@ -140,7 +143,7 @@ class Group(db.Model):
     # id, name, owner_id, info, tasks, members
     __tablename__ = 'group'
     id = db.Column(db.Integer, primary_key=True)
-    __name = db.Column(db.String(1024), nullable=False)
+    name = db.Column(db.String(1024), nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     __info = db.Column(db.String(1024))
     __tasks = db.relationship('Task',
@@ -158,11 +161,14 @@ class Group(db.Model):
                     }
     
     def __init__(self, name, owner_id, info=''):
-        self.__name = name
+        self.name = name
         self.owner_id = owner_id
         self.__info = info
         user = User.query.filter_by(id=owner_id).first()
         self.__members.append(user)
+        
+    def __cmp__(self, other):
+        return self.name < other.name
         
     def get_id(self):
         return self.id
@@ -195,7 +201,7 @@ class Group(db.Model):
                info=None
                ):
         if name is not None:
-            self.__name = name
+            self.name = name
         if owner_id is not None and User.query.filter_by(id=owner_id).first():
             self.owner_id = owner_id
         if info is not None:
@@ -203,7 +209,7 @@ class Group(db.Model):
             
     def get_info_map(self):
         return {'group_id': self.id,
-                'name': self.__name,
+                'name': self.name,
                 'owner_id':self.owner_id,
                 'info': self.__info}
 
@@ -219,7 +225,7 @@ class Task(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     __title = db.Column(db.String(1024), nullable=False)
     __create_time = db.Column(db.DateTime, nullable=False)
-    __finish_time = db.Column(db.DateTime, nullable=False)
+    finish_time = db.Column(db.DateTime, nullable=False)
     __status = db.Column(db.Integer, nullable=False)
     __publicity = db.Column(db.Integer, nullable=False)
     __group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
@@ -238,7 +244,7 @@ class Task(db.Model):
         self.owner_id = owner_id
         self.__title = title
         self.__create_time = datetime.datetime.now()
-        self.__finish_time = finish_time
+        self.finish_time = finish_time
         self.__status = status
         self.__publicity = publicity
         if self.__publicity == 2:
@@ -246,6 +252,9 @@ class Task(db.Model):
         else:
             self.__group_id = None
         self.__info = info
+        
+    def __cmp__(self, other):
+        return self.finish_time < other.finish_time
         
     def get_id(self):
         return self.id
@@ -258,7 +267,7 @@ class Task(db.Model):
         return {'task_id': self.id,
                 'title': self.__title,
                 'create_time': self.__create_time,
-                'finish_time': self.__finish_time,
+                'finish_time': self.finish_time,
                 'status': self.__status,
                 'publicity': self.__publicity,
                 'info': self.__info}
@@ -277,7 +286,7 @@ class Task(db.Model):
         if title is not None:
             self.__title = title
         if finish_time is not None:
-            self.__finish_time = finish_time
+            self.finish_time = finish_time
         if status is not None:
             self.__status = status
         if publicity is not None:
