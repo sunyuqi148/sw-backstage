@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from models import User, Group, Task
 
 # Validating methods
@@ -68,8 +70,16 @@ def validate_task_ownership(user_id, task_id):
         return False
 
 
-# Other methods
-# Check the states of tasks
-def refresh_state():
-    pass #TODO
+# Get id of username
+def get_userid(username):
+    user = User.query.filter_by(username=username).first()
+    return user.id
 
+
+def trans_to_date(str_time):
+    str_time = str_time.split()
+    d = str_time[0].split('-')
+    t = str_time[-1].split(':')
+    time = datetime.datetime(int(d[0]), int(d[1]), int(d[2]),
+                             int(t[0]), int(t[1]), int(t[2]))
+    return time
