@@ -210,7 +210,7 @@ class Group(db.Model):
     def get_info_map(self):
         return {'group_id': self.id,
                 'name': self.name,
-                'owner_id':self.owner_id,
+#                'owner_id':self.owner_id,
                 'info': self.__info}
 
 

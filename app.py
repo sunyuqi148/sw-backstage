@@ -28,16 +28,16 @@ login_manager.login_view = "login"
 
 
 #================ USER FUNCTION =============
-# Get info of another user
-@app.route('/get_user', methods=['POST'])
-@login_required
-def get_user():
-    form = {k:request.form[k].strip() for k in request.form}
-    if utils.validate_userid(int(form['user_id'])):
-        user = User.query.filter_by(id=int(form['user_id'])).first()
-        return Validity(True, user.get_map_info())
-    else:
-        return Validity(False, 'Invalid user id').get_resp()
+## Get info of another user
+#@app.route('/get_user', methods=['POST'])
+#@login_required
+#def get_user():
+#    form = {k:request.form[k].strip() for k in request.form}
+#    if utils.validate_userid(int(form['user_id'])):
+#        user = User.query.filter_by(id=int(form['user_id'])).first()
+#        return Validity(True, user.get_map_info())
+#    else:
+#        return Validity(False, 'Invalid user id').get_resp()
 
 
 # Update the info of current user
@@ -45,6 +45,9 @@ def get_user():
 @login_required
 def update_user():
     form = {k:request.form[k].strip() for k in request.form}
+    if 'user_id' not in form:
+        assert 'user_username' in form
+        form['user_id'] = utils.get_userid(form['user_username'])
     current_user.update(username=(None if 'username' not in form else form['username']),
                 password=(None if 'password' not in form else form['password']),
                  name=(None if 'name' not in form else form['name']),
@@ -106,6 +109,9 @@ def get_group_tasklist():
 @login_required
 def add_friend():
     form = {k:request.form[k].strip() for k in request.form}
+    if 'friend_id' not in form:
+        assert 'friend_username' in form
+        form['friend_id'] = utils.get_userid(form['friend_username'])
     if not utils.validate_userid(int(form['friend_id'])) or utils.validate_friendship(int(current_user.id), int(form['friend_id'])):
         return Validity(False, 'User ' + form['friend_id'] + ' does not exist.').get_resp()
     friend = User.query.filter_by(id = int(form['friend_id'])).first()
@@ -119,6 +125,9 @@ def add_friend():
 @login_required
 def delete_friend():
     form = {k:request.form[k].strip() for k in request.form}
+    if 'friend_id' not in form:
+        assert 'friend_username' in form
+        form['friend_id'] = utils.get_userid(form['friend_username'])
     if not utils.validate_userid(int(form['friend_id'])) or not utils.validate_friendship(int(current_user.id), int(form['friend_id'])):
         return Validity(False, 'User ' + form['friend_id'] + ' does not exist.').get_resp()
     friend = User.query.filter_by(id = int(form['friend_id'])).first()
@@ -182,6 +191,9 @@ def get_group_member():
 @login_required
 def update_group():
     form = {k:request.form[k].strip() for k in request.form}
+    if 'owner_id' not in form:
+        assert 'owner_username' in form
+        form['owner_id'] = utils.get_userid(form['owner_username'])
     if utils.validate_groupid(int(form['group_id'])):
         if utils.validate_ownership(int(current_user.id), int(form['group_id'])):
             group = Group.query.filter_by(id = int(form['group_id'])).first()
@@ -329,6 +341,9 @@ def quit_group():
 @login_required
 def add_member():
     form = {k:request.form[k].strip() for k in request.form}
+    if 'user_id' not in form:
+        assert 'user_username' in form
+        form['user_id'] = utils.get_userid(form['user_username'])
     if utils.validate_groupid(group_id=int(form['group_id'])):
         if not utils.validate_membership(int(form['user_id']), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
@@ -346,6 +361,9 @@ def add_member():
 @login_required
 def delete_member():
     form = {k:request.form[k].strip() for k in request.form}
+    if 'user_id' not in form:
+        assert 'user_username' in form
+        form['user_id'] = utils.get_userid(form['user_username'])
     if utils.validate_groupid(group_id=int(form['group_id'])):
         if utils.validate_membership(int(form['user_id']), int(form['group_id'])) and not utils.validate_ownership(int(form['user_id']), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
