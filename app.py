@@ -189,7 +189,7 @@ def update_group():
                          owner_id=(None if 'owner_id' not in form else int(form['owner_id'])),
                          info=(None if 'info' not in form else form['info']))
             db.session.commit()
-            return Validity(True).get_resp()
+            return Validity(True, group.get_map_info()).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
     else:
