@@ -87,10 +87,6 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return self.id
     
-    # rets: json map includes valid=true and user_id
-    def get_resp(self):
-        pass
-    
     def get_friends(self):
         return self.__friends
     

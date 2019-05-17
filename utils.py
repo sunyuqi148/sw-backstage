@@ -76,10 +76,3 @@ def trans_to_date(str_time):
     time = datetime.datetime(int(d[0]), int(d[1]), int(d[2]),
                              int(t[0]), int(t[1]), int(t[2]))
     return time
-
-
-# Other methods
-# Check the states of tasks
-def refresh_state():
-    pass #TODO
-
