@@ -38,7 +38,7 @@ $ sudo python3 app.py
 
 ##### register (tested):
 
-	route: http://222.29.159.164:10006/register
+	route: https://222.29.159.164:10006/register
 	
 	request: username, password
 	
@@ -50,7 +50,7 @@ $ sudo python3 app.py
 
 ##### login (tested)：
 
-​	route: http://222.29.159.164:10006/login
+​	route: https://222.29.159.164:10006/login
 
 ​	request: username, password
 
@@ -62,7 +62,7 @@ $ sudo python3 app.py
 
 ##### logout (tested):
 
-​	route: http://222.29.159.164:10006/logout
+​	route: https://222.29.159.164:10006/logout
 
 ​	method: GET
 
@@ -72,7 +72,7 @@ $ sudo python3 app.py
 
 ##### get_tasklist:
 
-​	route: http://222.29.159.164:10006/get_tasklist
+​	route: https://222.29.159.164:10006/get_tasklist
 
 ​	method: GET
 
@@ -80,7 +80,7 @@ $ sudo python3 app.py
 
 ##### add_task:
 
-​	route: http://222.29.159.164:10006/addtask
+​	route: https://222.29.159.164:10006/addtask
 
 ​	request: title, deadline, description
 
@@ -88,7 +88,7 @@ $ sudo python3 app.py
 
 ##### modify_task:
 
-​	route: http://222.29.159.164:10006/modifytask
+​	route: https://222.29.159.164:10006/modifytask
 
 ​	request: task_id, title(optional), deadline(optional), description(optional)
 
@@ -98,7 +98,7 @@ $ sudo python3 app.py
 
 ##### delete_task:
 
-​	route: http://222.29.159.164:10006/deletetask
+​	route: https://222.29.159.164:10006/deletetask
 
 ​	request: task_id
 
@@ -108,10 +108,85 @@ $ sudo python3 app.py
 
 ##### finish_task:
 
-​	route: http://222.29.159.164:10006/finishtask
+​	route: https://222.29.159.164:10006/finishtask
 
 ​	request: task_id
 
 ​	response: 若当前用户有权限完成此task, valid=true
 
 ​			否则valid=false, info='Invalid task id'
+
+#### 小组管理子系统
+
+##### create_group:
+
+	route: https://222.29.159.164:10006/create_group
+	
+	request: name, info(optional)
+	
+	response: {valid: true, group: group(group_id, name, owner_id, info)}
+	
+##### update_group:
+
+	route: https://222.29.159.164:10006/update_group
+	
+	request: group_id, name(optional), owner_id(optional), info(optional)
+	
+	response: 若更新成功，{valid: true, group: group(group_id, name, owner_id, info)}
+	
+			否则valid=false, info
+			
+##### add_member:
+
+	route: https://222.29.159.164:10006/add_member
+	
+	request: group_id, user_id
+	
+	response: 若添加成功，valid=true
+			
+			否则valid, info
+	
+##### delete_member:
+
+	route: https://222.29.159.164:10006/delete_member
+	
+	request: group_id, user_id
+	
+	response: 若删除成功, valid=true
+	
+			否则valid, info
+
+##### get_group_tasklist:
+
+	route: https://222.29.159.164:10006/get_group_tasklist
+	
+	method: GET
+	
+	response: {valid: true, group task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
+			
+#### 好友管理子系统
+
+##### add_friend:
+
+	route: https://222.29.159.164:10006/add_friend
+	
+	request: friend_id
+	
+	response: valid=true
+	
+##### delete_friend:
+
+	route: https://222.29.159.164:10006/delete_friend
+	
+	request: friend_id
+	
+	response: valid=true
+	
+##### get_friendlsit:
+
+	route: https://222.29.159.164:10006/get_friendlsit
+	
+	method: GET
+	
+	response: {valid: true, friend list: [User(username, name, info), ...]}
+	
