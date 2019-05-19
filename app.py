@@ -207,6 +207,14 @@ def update_group():
     else:
         return Validity(False, 'Invalid group id').get_resp()
 
+# Check the ownership of a group
+@app.route('/check_ownership',methods=['POST'])
+@login_required
+def check_ownership():
+    if utils.validate_ownership(current_user.id, request.form['group.id']):
+        return Validity(True).get_resp()
+    else:
+        return Validity(False).get_resp()
 
 # Create group task
 @app.route('/create_group_task', methods=['POST'])
