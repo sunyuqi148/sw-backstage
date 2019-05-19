@@ -211,7 +211,8 @@ def update_group():
 @app.route('/check_ownership',methods=['GET'])
 @login_required
 def check_ownership():
-    if utils.validate_ownership(current_user.id, request.form['group.id']):
+   form = {k:request.form[k].strip() for k in request.form}
+    if utils.validate_ownership(int(current_user.id), int(request.form['group.id'])):
         return Validity(True).get_resp()
     else:
         return Validity(False).get_resp()
