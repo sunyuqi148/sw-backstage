@@ -138,7 +138,7 @@ def delete_friend():
 
 #================ GROUP FUNCTION =============
 # Get info of a group
-@app.route('/get_group', methods=['POST'])
+@app.route('/get_group', methods=['GET']
 @login_required
 def get_group():
     form = {k:request.form[k].strip() for k in request.form}
@@ -153,7 +153,7 @@ def get_group():
 
 
 # Get group task list
-@app.route('/get_group_task', methods=['POST'])
+@app.route('/get_group_task', methods=['GET'])
 @login_required
 def get_group_task():
     form = {k:request.form[k].strip() for k in request.form}
@@ -170,7 +170,7 @@ def get_group_task():
 
 
 # Get group member list
-@app.route('/get_group_member', methods=['POST'])
+@app.route('/get_group_member', methods=['GET'])
 @login_required
 def get_group_member():
     form = {k:request.form[k].strip() for k in request.form}
@@ -207,6 +207,15 @@ def update_group():
     else:
         return Validity(False, 'Invalid group id').get_resp()
 
+# Check the ownership of a group
+@app.route('/check_ownership',methods=['GET'])
+@login_required
+def check_ownership():
+   form = {k:request.form[k].strip() for k in request.form}
+    if utils.validate_ownership(int(current_user.id), int(request.form['group.id'])):
+        return Validity(True).get_resp()
+    else:
+        return Validity(False).get_resp()
 
 # Create group task
 @app.route('/create_group_task', methods=['POST'])
