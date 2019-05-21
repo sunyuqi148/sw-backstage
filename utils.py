@@ -80,6 +80,8 @@ def trans_to_date(str_time):
     str_time = str_time.split()
     d = str_time[0].split('-')
     t = str_time[-1].split(':')
+    for i in range(len(d), 3): d.append(0)
+    for i in range(len(t), 3): t.append(0)
     time = datetime.datetime(int(d[0]), int(d[1]), int(d[2]),
                              int(t[0]), int(t[1]), int(t[2]))
     return time
