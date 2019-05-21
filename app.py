@@ -138,7 +138,7 @@ def delete_friend():
 
 #================ GROUP FUNCTION =============
 # Get info of a group
-@app.route('/get_group', methods=['GET']
+@app.route('/get_group', methods=['GET'])
 @login_required
 def get_group():
     form = {k:request.form[k].strip() for k in request.form}
