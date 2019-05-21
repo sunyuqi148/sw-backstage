@@ -91,9 +91,9 @@ $ sudo python3 app.py
 
 ​	route: https://222.29.159.164:10006/create_task
 
-​	request: title, deadline, status, publicity, group_id.
+​	request: title, deadline, status(optional), publicity(optional), group_id(optional), info(optional)
 
-​	response: valid, task_id
+​	response: {valid: true, task_id, title, create_time, finish_time, status, publicity, info}
 
 ##### update_task:
 
@@ -144,6 +144,16 @@ $ sudo python3 app.py
 
 #### 小组管理子系统
 
+##### get_group:
+
+	route: https://222.29.159.164:10006/get_group
+	
+	method: GET
+	
+	response: 若获取成功，{valid: true, group_id, name, owner_id, info}
+	
+			若获取失败，{valid: false, info: 'Invalid group id'}
+
 ##### create_group:
 
 	route: https://222.29.159.164:10006/create_group
@@ -161,6 +171,36 @@ $ sudo python3 app.py
 	response: 若更新成功，{valid: true, group: group(group_id, name, owner_id, info)}
 	
 			否则valid=false, info
+
+##### join_group:
+
+	route: https://222.29.159.164:10006/join_group
+	
+	request: group_id
+	
+	response: 若加入成功，{valid: true}
+	
+			否则valid=false, info
+
+##### quit_group:
+
+	route: https://222.29.159.164:10006/quit_group
+	
+	request: group_id
+	
+	response: 若加入成功，{valid: true}
+	
+			否则valid=false, info
+			
+##### get_group_member:
+
+	route: https://222.29.159.164:10006/get_group_member
+
+​	method: GET
+
+​	response: 若获取成功，{valid: true, member list: [user(username, name, info), ...]}
+
+			若获取失败，{valid: false, info}
 			
 ##### add_member:
 
@@ -182,13 +222,69 @@ $ sudo python3 app.py
 	
 			否则valid, info
 
+##### get_group_task:
+
+	route: https://222.29.159.164:10006/get_group_task
+
+​	method: GET
+
+​	response: 若获取成功，{valid: true, task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
+
+			若获取失败，{valid: false, info}
+
 ##### get_group_tasklist:
 
 	route: https://222.29.159.164:10006/get_group_tasklist
 	
 	method: GET
 	
-	response: {valid: true, group task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
+	response: {valid: true, 
+			group task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
+
+##### create_group_task:
+
+​	route: https://222.29.159.164:10006/create_group_task
+
+​	request: title, deadline, status(optional), publicity(optional), group_id(optional), info(optional)
+
+​	response: 若创建成功，{valid: true, task_id, title, create_time, finish_time, status, publicity, info}
+
+			若创建失败，{valid: false, info}
+			
+##### update_group_task:
+
+​	route: https://222.29.159.164:10006/update_group_task
+
+​	request: task_id, group_id, title(optional), finish_time(optional),
+			status(optional), publicity(optional), group_id(optional), info(optional)
+
+​	response: 若创建成功，{valid: true}
+
+			若创建失败，{valid: false, info}			
+			
+	备注：在本方法中，若当前用户为小组成员，则仅对status具有有效修改权限；
+			若当前用户为组长，则对所有信息都有修改权限。
+			
+##### delete_group_task:
+
+​	route: https://222.29.159.164:10006/delete_group_task
+
+​	request: group_id, task_id
+
+​	response: 若创建成功，{valid: true}
+
+			若创建失败，{valid: false, info}
+			
+##### check_ownership:
+
+	route: https://222.29.159.164:10006/check_ownership
+	
+	method: GET
+	
+	response: 若当前用户是组长，valid=true
+	
+			否则，valid=false
+			
 			
 #### 好友管理子系统
 
@@ -216,3 +312,10 @@ $ sudo python3 app.py
 	
 	response: {valid: true, friend list: [User(username, name, info), ...]}
 	
+##### get_friend_tasklist:
+
+	route: https://222.29.159.164:10006/get_friend_tasklist
+
+​	method: GET
+
+​	response: {valid: true, friend task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
