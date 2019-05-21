@@ -79,6 +79,16 @@ $ sudo python3 app.py
 
 #### 任务管理子系统：
 
+##### get_task:
+
+​	route: https://222.29.159.164:10006/get_task
+
+​	method: GET
+
+​	response: 若获取成功，{valid: true, task_id, title, create_time, finish_time, status, publicity, info}
+
+			若获取失败，{valid: false, info}
+
 ##### get_tasklist:
 
 ​	route: https://222.29.159.164:10006/get_tasklist
