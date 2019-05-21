@@ -87,7 +87,7 @@ def get_tasklist():
 def get_friend_tasklist():
     ret = []
     for friend in current_user.get_friends():
-        ret.extends([task for task in friend.get_public_tasks()])
+        ret.extend([task for task in friend.get_public_tasks()])
     ret = sorted(ret)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'friend task list': ret}).get_resp()
@@ -99,7 +99,7 @@ def get_friend_tasklist():
 def get_group_tasklist():
     ret = []
     for group in current_user.get_groups():
-        ret.extends([task for task in group.get_tasks()])
+        ret.extend([task for task in group.get_tasks()])
     ret = sorted(ret)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'group task list': ret}).get_resp()
