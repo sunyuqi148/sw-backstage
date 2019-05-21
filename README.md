@@ -68,6 +68,15 @@ $ sudo python3 app.py
 
 ​	response: 返回退出成功, valid(=true)
 
+##### update_user:
+
+	route: https://222.29.159.164:10006/update_user
+
+​	request: username, password, name, info
+
+​	response: valid(=True)
+
+
 #### 任务管理子系统：
 
 ##### get_tasklist:
@@ -78,19 +87,19 @@ $ sudo python3 app.py
 
 ​	response: valid(=True), list[task(id, owner_id, title, deadline, ...), ...]
 
-##### add_task:
+##### create_task:
 
-​	route: https://222.29.159.164:10006/addtask
+​	route: https://222.29.159.164:10006/create_task
 
-​	request: title, deadline, description
+​	request: title, deadline, status, publicity, group_id.
 
 ​	response: valid, task_id
 
-##### modify_task:
+##### update_task:
 
-​	route: https://222.29.159.164:10006/modifytask
+​	route: https://222.29.159.164:10006/update_task
 
-​	request: task_id, title(optional), deadline(optional), description(optional)
+​	request: task_id, title(optional), finish_time(optional), status(optional), publicity(optional), 
 
 ​	response: 若当前用户有权限修改此task, valid = true
 
@@ -115,6 +124,23 @@ $ sudo python3 app.py
 ​	response: 若当前用户有权限完成此task, valid=true
 
 ​			否则valid=false, info='Invalid task id'
+
+##### get_friend_tasklist:
+
+	route: https://222.29.159.164:10006/get_friend_tasklist
+
+​	method: GET
+
+​	response: {valid: true, friend task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
+
+##### get_group_tasklist:
+
+	route: https://222.29.159.164:10006/get_group_tasklist
+
+​	method: GET
+
+​	response: {valid: true, group task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
+
 
 #### 小组管理子系统
 
@@ -182,9 +208,9 @@ $ sudo python3 app.py
 	
 	response: valid=true
 	
-##### get_friendlsit:
+##### get_friendlist:
 
-	route: https://222.29.159.164:10006/get_friendlsit
+	route: https://222.29.159.164:10006/get_friendlist
 	
 	method: GET
 	
