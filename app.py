@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import os
+
 from flask import (Flask, request, redirect, url_for)
 from flask import json
 from flask_login import login_required, login_user, logout_user, current_user
+from flask_mail import Mail, Message
+from threading import Thread
 
 from ext import db, login_manager
 from models import User, Group, Task, Validity
@@ -16,6 +20,13 @@ app = Flask(__name__)
 SECRET_KEY = 'This is my key'
 app.secret_key = SECRET_KEY
 
+app.config['MAIL_SERVER'] = 'mail.pku.edu.cn'
+app.config['MAIL_PORT'] = 25
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+
+
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test?charset=utf8"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
@@ -25,6 +36,8 @@ db.create_all(app=app)
 login_manager.init_app(app)
 login_manager.session_protection = "strong"
 login_manager.login_view = "login"
+
+mail = Mail(app)
 
 
 #================ USER FUNCTION =============
@@ -477,11 +490,26 @@ def delete_task():
 
 #================== User SubSystem (tested) ==================
 
+SENDER = 'sun_yq@pku.edu.cn'
+
+def send_mail(app, content, email_addr):
+    msg = Message(content,
+	              sender = SENDER,
+				  recipients = [email_addr])
+	with app.app_context():
+	    mail.send(msg)
+
+def get_check_code():
+    return 1
+
 @app.route('/register', methods=['GET','POST'])
 def register():
     form = {k:request.form[k].strip() for k in request.form}
     print(form['username'], form['password'])
     if utils.validate_username(form['username']):
+	    content =  'Hello! your checking code is:' + get_check_code()
+	    thread = Thread(target=send_mail, 
+		                args=[app, content , request.form['email_addr']]]
         user = User(username=form['username'],
                     password=form['password']
                     )
