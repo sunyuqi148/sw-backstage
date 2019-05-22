@@ -20,10 +20,10 @@ app = Flask(__name__)
 SECRET_KEY = 'This is my key'
 app.secret_key = SECRET_KEY
 
-MAIL_USERNAME = None
-MAIL_PASSWORD = None
+MAIL_USERNAME = 'shareddl@126.com'
+MAIL_PASSWORD = 'group4'
 
-app.config['MAIL_SERVER'] = 'mail.pku.edu.cn'
+app.config['MAIL_SERVER'] = 'smtp.126.com'
 app.config['MAIL_PORT'] = 25
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = MAIL_USERNAME
