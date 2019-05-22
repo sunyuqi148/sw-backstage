@@ -494,10 +494,10 @@ SENDER = 'sun_yq@pku.edu.cn'
 
 def send_mail(app, content, email_addr):
     msg = Message(content,
-	              sender = SENDER,
-				  recipients = [email_addr])
-	with app.app_context():
-	    mail.send(msg)
+                  sender = SENDER,
+                  recipients = [email_addr])
+    with app.app_context():
+        mail.send(msg)
 
 def get_check_code():
     return 1
@@ -507,9 +507,9 @@ def register():
     form = {k:request.form[k].strip() for k in request.form}
     print(form['username'], form['password'])
     if utils.validate_username(form['username']):
-	    content =  'Hello! your checking code is:' + get_check_code()
-	    thread = Thread(target=send_mail, 
-		                args=[app, content , request.form['email_addr']]]
+        content =  'Hello! your checking code is:' + get_check_code()
+        thread = Thread(target=send_mail, 
+                        args=[app, content , request.form['email_addr']])
         user = User(username=form['username'],
                     password=form['password']
                     )
