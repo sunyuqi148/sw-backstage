@@ -504,7 +504,7 @@ def register():
     if utils.validate_username(form['username']):
         content =  'Hello! your checking code is:' + utils.get_check_code()
         thread = Thread(target=send_mail, 
-                        args=[app, content , request.form['email_addr']]]
+                        args=[app, content , request.form['email_addr']])
         user = User(username=form['username'],
                     password=form['password']
                     )
