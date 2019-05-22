@@ -85,3 +85,8 @@ def trans_to_date(str_time):
     time = datetime.datetime(int(d[0]), int(d[1]), int(d[2]),
                              int(t[0]), int(t[1]), int(t[2]))
     return time
+
+def get_check_code(length):
+    ret = ''
+    for i in range(length): ret = ret + str(random.randint(0, 9))
+    return ret
