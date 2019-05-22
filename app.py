@@ -228,7 +228,7 @@ def update_group():
 @login_required
 def check_ownership():
     form = {k:request.form[k].strip() for k in request.form}
-    if utils.validate_ownership(int(current_user.id), int(request.form['group.id'])):
+    if utils.validate_ownership(int(current_user.id), int(request.form['group_id'])):
         return Validity(True).get_resp()
     else:
         return Validity(False).get_resp()

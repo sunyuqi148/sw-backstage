@@ -160,7 +160,7 @@ $ sudo python3 app.py
 	
 	method: GET
 	
-	response: 若获取成功，{valid: true, group_id, name, owner_id, info}
+	response: 若获取成功，{valid: true, group_id, name, info}
 	
 			若获取失败，{valid: false, info: 'Invalid group id'}
 
@@ -170,7 +170,7 @@ $ sudo python3 app.py
 	
 	request: name, info(optional)
 	
-	response: {valid: true, group: group(group_id, name, owner_id, info)}
+	response: {valid: true, group: group(group_id, name, info)}
 	
 ##### update_group:
 
@@ -178,7 +178,7 @@ $ sudo python3 app.py
 	
 	request: group_id, name(optional), owner_id(optional), info(optional)
 	
-	response: 若更新成功，{valid: true, group: group(group_id, name, owner_id, info)}
+	response: 若更新成功，{valid: true, group: group(group_id, name, info)}
 	
 			否则valid=false, info
 
