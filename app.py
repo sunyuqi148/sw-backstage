@@ -20,11 +20,14 @@ app = Flask(__name__)
 SECRET_KEY = 'This is my key'
 app.secret_key = SECRET_KEY
 
+MAIL_USERNAME = None
+MAIL_PASSWORD = None
+
 app.config['MAIL_SERVER'] = 'mail.pku.edu.cn'
 app.config['MAIL_PORT'] = 25
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_USERNAME'] = MAIL_USERNAME
+app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test?charset=utf8"
@@ -492,7 +495,7 @@ def delete_task():
 
 def send_mail(app, content, email_addr):
     msg = Message(content,
-                  sender = os.environ.get('MAIL_USERNAME'),
+                  sender = MAIL_USERNAME,
                   recipients = [email_addr])
     with app.app_context():
         mail.send(msg)
@@ -502,10 +505,11 @@ def register():
     form = {k:request.form[k].strip() for k in request.form}
     print(form['username'], form['password'])
     if utils.validate_username(form['username']):
-        content =  'Hello! your checking code is:' + utils.get_check_code()
-        thread = Thread(target=send_mail, 
-                        args=[app, content , request.form['email_addr']])
-        thread.start()
+        if MAIL_USERNAME:
+            content =  'Hello! your checking code is:' + utils.get_check_code()
+            thread = Thread(target=send_mail, 
+                            args=[app, content , request.form['email_addr']])
+            thread.start()
         user = User(username=form['username'],
                     password=form['password']
                     )
