@@ -36,7 +36,7 @@ class Validity:
 # Membership of some user for some group
 membership = db.Table('membership',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True)，
+    db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True),
     db.Column('status', db.Integer)                     
 )
 
@@ -57,6 +57,8 @@ class User(UserMixin, db.Model):
                          unique=True)
     password = db.Column(db.String(24), nullable=False)
     name = db.Column(db.String(24), nullable=False)
+    __verified = db.Column(db.Boolean(1), nullable=False)
+    __verify_code = db.Column(db.String(4))
     __info = db.Column(db.String(1024)) 
     __tasks = db.relationship('Task', backref='owner', lazy='subquery')
     __friends = db.relationship('User', #defining the relationship, User is left side entity
@@ -84,6 +86,8 @@ class User(UserMixin, db.Model):
         else:
             self.name = name
         self.__info = info
+        self.__verified = False
+        self.__verify_code = None
         
     def __cmp__(self, other):
         return self.name < other.name
@@ -112,14 +116,17 @@ class User(UserMixin, db.Model):
     # rets: a dict of user's info
     def get_info_map(self):
         return {'username': self.username,
-                'name': self.__name,
-                'info': self.__info}
+                'name': self.name,
+                'verified': self.__verified,
+                'info': self.__info,
+                }
 
     def update(self, 
                username=None,
                password=None,
                name=None,
-               info=None
+               info=None,
+               code=None
                ):
         if username is not None and not User.query.filter_by(username=username).first():
             self.username = username
@@ -129,6 +136,13 @@ class User(UserMixin, db.Model):
             self.name = name
         if info is not None:
             self.__info = info
+        if code is not None:
+            if code == self.__verify_code:
+                self.__status = True
+                self.__verify_code = None
+                return True
+            else:
+                return False
 
     def add_friend(self, friend_id):
         friend = User.query.filter_by(id=friend_id).first()
@@ -138,12 +152,7 @@ class User(UserMixin, db.Model):
         friend = User.query.filter_by(id=friend_id).first()
         if friend in self.__friends:
             self.__friends.remove(friend)
-    
-    # rets: a dict of user's info
-    def get_info_map(self):
-        return {'username': self.username,
-                'name': self.name,
-                'info': self.__info}
+
 
 # All groups
 class Group(db.Model):

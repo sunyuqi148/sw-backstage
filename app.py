@@ -33,7 +33,7 @@ app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test?charset=utf8"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
-#db.drop_all(app=app) # Only for debugging
+db.drop_all(app=app) # Only for debugging
 db.create_all(app=app)
 
 login_manager.init_app(app)
@@ -56,14 +56,24 @@ mail = Mail(app)
 #        return Validity(False, 'Invalid user id').get_resp()
 
 
+# Verify the current user
+@app.route('/verify_user', methods=['POST'])
+@login_required
+def verify_user():
+    form = {k:request.form[k].strip() for k in request.form}
+    success = current_user.update(code=form['code'])
+    if success:
+        db.session.commit()
+        return Validity(True).get_resp()
+    else:
+        return Validity(False, 'Wrong code').get_resp()
+
+
 # Update the info of current user
 @app.route('/update_user', methods=['POST'])
 @login_required
 def update_user():
     form = {k:request.form[k].strip() for k in request.form}
-    if 'user_id' not in form:
-        assert 'user_username' in form
-        form['user_id'] = utils.get_userid(form['user_username'])
     current_user.update(username=(None if 'username' not in form else form['username']),
                 password=(None if 'password' not in form else form['password']),
                  name=(None if 'name' not in form else form['name']),
@@ -228,7 +238,7 @@ def update_group():
 @login_required
 def check_ownership():
     form = {k:request.form[k].strip() for k in request.form}
-    if utils.validate_ownership(int(current_user.id), int(request.form['group_id'])):
+    if utils.validate_ownership(int(current_user.id), int(form['group_id'])):
         return Validity(True).get_resp()
     else:
         return Validity(False).get_resp()
@@ -505,8 +515,10 @@ def register():
     form = {k:request.form[k].strip() for k in request.form}
     print(form['username'], form['password'])
     if utils.validate_username(form['username']):
+        code = None
         if MAIL_USERNAME:
-            content =  'Hello! your checking code is:' + utils.get_check_code()
+            code = utils.get_check_code()
+            content =  'Hello! your checking code is:' + code
             thread = Thread(target=send_mail, 
                             args=[app, content , request.form['email_addr']])
             thread.start()
@@ -594,6 +606,6 @@ def test():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
-#    app.run(host='127.0.0.1', port=5000, debug=True)
+#    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
+    app.run(host='127.0.0.1', port=5000, debug=True)
     

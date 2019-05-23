@@ -88,6 +88,5 @@ def trans_to_date(str_time):
     return time
 
 def get_check_code(length=4):
-    ret = ''
-    for i in range(length): ret = ret + str(random.randint(0, 9))
+    ret = ''.join([str(random.randint(0, 9)) for _ in range(length)])
     return ret
