@@ -513,6 +513,7 @@ def send_mail(app, content, email_addr):
 @app.route('/register', methods=['GET','POST'])
 def register():
     form = {k:request.form[k].strip() for k in request.form}
+#    form = {'username': 'zhanghaix', 'password': 'zhanghaix', 'email_addr': '1500010620@pku.edu.cn'}
     print(form['username'], form['password'])
     if utils.validate_username(form['username']):
         code = None
@@ -520,13 +521,18 @@ def register():
             code = utils.get_check_code()
             content =  'Hello! your checking code is:' + code
             thread = Thread(target=send_mail, 
-                            args=[app, content , request.form['email_addr']])
+                            args=[app, content , form['email_addr']])
             thread.start()
         user = User(username=form['username'],
-                    password=form['password']
+                    password=form['password'],
+                    code=code
                     )
         db.session.add(user)
         db.session.commit()
+#        user = User.query.filter_by(username=form['username']).first()
+#        success = user.update(code=code)
+#        print(success)
+#        db.session.commit()
         # login_user(user, remember=True)
         print('valid')
         return Validity(True).get_resp() # 'register succeeds'

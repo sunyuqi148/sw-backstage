@@ -77,6 +77,7 @@ class User(UserMixin, db.Model):
     
     def __init__(self, username, password,
                  name=None,
+                 code=None,
                  info=''
                  ):
         self.username = username
@@ -87,7 +88,7 @@ class User(UserMixin, db.Model):
             self.name = name
         self.__info = info
         self.__verified = False
-        self.__verify_code = None
+        self.__verify_code = code
         
     def __cmp__(self, other):
         return self.name < other.name
@@ -138,7 +139,7 @@ class User(UserMixin, db.Model):
             self.__info = info
         if code is not None:
             if code == self.__verify_code:
-                self.__status = True
+                self.__verified = True
                 self.__verify_code = None
                 return True
             else:
