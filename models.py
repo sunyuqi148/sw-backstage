@@ -47,6 +47,15 @@ friendship = db.Table('friendship',
     db.Column('status', db.Integer)
 )
 
+#class membership(db.Model):
+#    __tablename__ = 'membership'
+#    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+#    group_id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
+#    status = db.Column(db.Integer) 
+#    __table_args__ = {
+#                    "mysql_charset" : "utf8"
+#                    }
+
 
 # All users
 class User(UserMixin, db.Model):

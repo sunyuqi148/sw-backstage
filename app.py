@@ -10,7 +10,7 @@ from flask_mail import Mail, Message
 from threading import Thread
 
 from ext import db, login_manager
-from models import User, Group, Task, Validity
+from models import User, Group, Task, Validity, membership, friendship
 import utils
 
 import datetime
@@ -574,29 +574,31 @@ def load_user(user_id):
 def test():
     user = User(username='管理员', password='admin')
     db.session.add(user)
-#    user = User(username='admin1', password='admin1')
-#    db.session.add(user)
-#    user = User(username='admin2', password='admin2')
-#    db.session.add(user)
+    user = User(username='admin1', password='admin1')
+    db.session.add(user)
+    user = User(username='admin2', password='admin2')
+    db.session.add(user)
     db.session.commit()
+#    user1 = membership.query.filter_by(user_id=0).first()
+#    print(user1)
 #    task = Task(1, 'ok', datetime.datetime.now())
 #    db.session.add(task)
 #    task = Task(1, 'ok1', datetime.datetime.now())
 #    db.session.add(task)
 #    db.session.commit()
-#    user1 = User.query.filter_by(id=1).first()
-#    user2 = User.query.filter_by(id=2).first()
-#    user1.add_friend(2)
-#    print(user1.get_friends())
-#    print(user2.get_friends())
-#    db.session.commit()
-#    group = Group('test group', owner_id=1)
-#    db.session.add(group)
-#    group.add_member(2)
-#    db.session.commit()
-#    print(user1.get_ownership())
-#    print(group.get_members())
-#    print(user2.get_groups())
+    user1 = User.query.filter_by(id=1).first()
+    user2 = User.query.filter_by(id=2).first()
+    user1.add_friend(2)
+    print(user1.get_friends())
+    print(user2.get_friends())
+    db.session.commit()
+    group = Group('test group', owner_id=1)
+    db.session.add(group)
+    group.add_member(2)
+    db.session.commit()
+    print(user1.get_ownership())
+    print(group.get_members())
+    print(user2.get_groups())
     
 #    print(User.query.filter_by(id=1).first().__friends)
 #    print(User.query.filter_by(id=2).first().__friends)
