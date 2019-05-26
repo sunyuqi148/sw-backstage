@@ -6,28 +6,31 @@ from ext import db
 
 import datetime
 
+
 ## These classes should inherit flask.ext.login.UserMixin.
 ## See: https://flask-login.readthedocs.io/en/latest/
-##      or 
+##      or
 ##      https://www.cnblogs.com/agmcs/p/4445428.html
 
 
 class Validity:
     # args: valid
     # if True, create with return information
-    def __init__(self, valid = False,
-                 ret = None):
-#                 ret_map = {}):
+    def __init__(self, valid=False,
+                 ret=None):
+        #                 ret_map = {}):
         if valid:
             self.__map = ret if ret != None else {}
-        else: 
+        else:
             self.__map = {}
             self.__map['error_info'] = ret
         self.__map['valid'] = valid
-   
+
     # rets: a json string of validity
     def get_resp(self):
         return json.dumps(self.__map)
+
+
 #        return Response(json.dumps({'valid': self._valid,
 #                                    'info': self._info}),
 #                        content_type='application/json')
@@ -35,21 +38,33 @@ class Validity:
 
 # Membership of some user for some group
 membership = db.Table('membership',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True)
-)
+                      db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                      db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True)
+                      )
 
 # Friendship between user and user
 friendship = db.Table('friendship',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
-)
+                      db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                      db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
+                      )
 
-#class membership(db.Model):
+# Friend requests
+friendReq = db.Table('friendReq',
+                     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                     db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
+                    )
+
+# Member requests
+memberReq = db.Table('memberReq',
+                     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                     db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True)
+                    )
+
+# class membership(db.Model):
 #    __tablename__ = 'membership'
 #    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
 #    group_id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
-#    status = db.Column(db.Integer) 
+#    status = db.Column(db.Integer)
 #    __table_args__ = {
 #                    "mysql_charset" : "utf8"
 #                    }
@@ -66,22 +81,28 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(24), nullable=False)
     __verified = db.Column(db.Boolean(1), nullable=False)
     __verify_code = db.Column(db.String(4))
-    __info = db.Column(db.String(1024)) 
+    __info = db.Column(db.String(1024))
     __tasks = db.relationship('Task', backref='owner', lazy='subquery')
-    __friends = db.relationship('User', #defining the relationship, User is left side entity
-                                secondary = friendship, 
-                                primaryjoin = (friendship.c.user_id == id), 
-                                secondaryjoin = (friendship.c.friend_id == id),
-                                lazy = 'subquery'
+    __friends = db.relationship('User',  # defining the relationship, User is left side entity
+                                secondary=friendship,
+                                primaryjoin=(friendship.c.user_id == id),
+                                secondaryjoin=(friendship.c.friend_id == id),
+                                lazy='subquery'
                                 )
+    __friendReqs = db.relationship('User',
+                                   secondary=friendReq,
+                                   primaryjoin=(friendReq.c.user_id == id),
+                                   secondaryjoin=(friendReq.c.friend_id == id),
+                                   lazy='subquery'
+                                   )
     __ownership = db.relationship('Group',
                                   backref='owner',
                                   lazy='subquery'
                                   )
     __table_args__ = {
-                    "mysql_charset" : "utf8"
-                    }
-    
+        "mysql_charset": "utf8"
+    }
+
     def __init__(self, username, password,
                  name=None,
                  code=None,
@@ -96,31 +117,31 @@ class User(UserMixin, db.Model):
         self.__info = info
         self.__verified = False
         self.__verify_code = code
-        
+
     def __cmp__(self, other):
         return self.name < other.name
-    
+
     def get_id(self):
         return self.id
-    
+
     def get_friends(self):
         return self.__friends
-    
+
     def get_groups(self):
         return self.groups
-        
+
     def get_ownership(self):
         return self.__ownership
 
     # rets: a json string of all tasks belonging to user
     def get_tasks(self):
         return self.__tasks
-    
+
     # rets: a json string of public tasks belonging to user
     def get_public_tasks(self):
         ret = [task for task in self.__tasks if task.get_publicity() == 0]
         return ret
-    
+
     # rets: a dict of user's info
     def get_info_map(self):
         return {'username': self.username,
@@ -129,7 +150,7 @@ class User(UserMixin, db.Model):
                 'info': self.__info,
                 }
 
-    def update(self, 
+    def update(self,
                username=None,
                password=None,
                name=None,
@@ -179,47 +200,51 @@ class Group(db.Model):
                                 lazy='subquery',
                                 backref=db.backref('groups', lazy=True)
                                 )
-    
+    __memberReqs = db.relationship('User',
+                                   secondary=memberReq,
+                                   lazy='subquery',
+                                   backref=db.backref('groups', lazy=True)
+                                   )
     __table_args__ = {
-                    "mysql_charset" : "utf8"
-                    }
-    
+        "mysql_charset": "utf8"
+    }
+
     def __init__(self, name, owner_id, info=''):
         self.name = name
         self.owner_id = owner_id
         self.__info = info
         user = User.query.filter_by(id=owner_id).first()
         self.__members.append(user)
-        
+
     def __cmp__(self, other):
         return self.name < other.name
-        
+
     def get_id(self):
         return self.id
-    
+
     def add_member(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         self.__members.append(user)
-        
+
     def delete_member(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         if user in self.__members:
             self.__members.remove(user)
-    
+
     def get_members(self):
         return self.__members
-    
-#    def add_task(self, task_id):
-#        task = Task.query.filter_by(id=task_id).first()
-#        self.__tasks.append(task)
-#        
-#    def delete_task(self, task_id):
-#        pass #TODO
-    
+
+    #    def add_task(self, task_id):
+    #        task = Task.query.filter_by(id=task_id).first()
+    #        self.__tasks.append(task)
+    #
+    #    def delete_task(self, task_id):
+    #        pass #TODO
+
     def get_tasks(self):
         return self.__tasks
 
-    def update(self, 
+    def update(self,
                name=None,
                owner_id=None,
                info=None
@@ -230,11 +255,11 @@ class Group(db.Model):
             self.owner_id = owner_id
         if info is not None:
             self.__info = info
-            
+
     def get_info_map(self):
         return {'group_id': self.id,
                 'name': self.name,
-#                'owner_id':self.owner_id,
+                #                'owner_id':self.owner_id,
                 'info': self.__info}
 
 
@@ -254,11 +279,11 @@ class Task(db.Model):
     __publicity = db.Column(db.Integer, nullable=False)
     __group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
     __info = db.Column(db.String(1024))
-    
+
     __table_args__ = {
-                    "mysql_charset" : "utf8"
-                    }
-    
+        "mysql_charset": "utf8"
+    }
+
     def __init__(self, owner_id, title, finish_time,
                  status=0,
                  publicity=0,
@@ -276,16 +301,16 @@ class Task(db.Model):
         else:
             self.__group_id = None
         self.__info = info
-        
+
     def __cmp__(self, other):
         return self.finish_time < other.finish_time
-        
+
     def get_id(self):
         return self.id
-    
+
     def get_publicity(self):
         return self.__publicity
-    
+
     # rets: a map includes valid=true and user_id
     def get_info_map(self):
         return {'task_id': self.id,
@@ -295,8 +320,8 @@ class Task(db.Model):
                 'status': self.__status,
                 'publicity': self.__publicity,
                 'info': self.__info}
-    
-    def update(self, 
+
+    def update(self,
                owner_id=None,
                title=None,
                finish_time=None,
