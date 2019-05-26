@@ -36,15 +36,13 @@ class Validity:
 # Membership of some user for some group
 membership = db.Table('membership',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True),
-    db.Column('status', db.Integer)                     
+    db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True)
 )
 
 # Friendship between user and user
 friendship = db.Table('friendship',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('status', db.Integer)
+    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
 )
 
 #class membership(db.Model):
