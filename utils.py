@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import random
 
 from models import User, Group, Task
 
@@ -80,6 +81,12 @@ def trans_to_date(str_time):
     str_time = str_time.split()
     d = str_time[0].split('-')
     t = str_time[-1].split(':')
+    for i in range(len(d), 3): d.append(0)
+    for i in range(len(t), 3): t.append(0)
     time = datetime.datetime(int(d[0]), int(d[1]), int(d[2]),
                              int(t[0]), int(t[1]), int(t[2]))
     return time
+
+def get_check_code(length=4):
+    ret = ''.join([str(random.randint(0, 9)) for _ in range(length)])
+    return ret

@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import os
+
 from flask import (Flask, request, redirect, url_for)
 from flask import json
 from flask_login import login_required, login_user, logout_user, current_user
+from flask_mail import Mail, Message
+from threading import Thread
 
 from ext import db, login_manager
-from models import User, Group, Task, Validity
+from models import User, Group, Task, Validity, membership, friendship
 import utils
 
 import datetime
@@ -16,15 +20,27 @@ app = Flask(__name__)
 SECRET_KEY = 'This is my key'
 app.secret_key = SECRET_KEY
 
+MAIL_USERNAME = 'shareddl@126.com'
+MAIL_PASSWORD = 'group4'
+
+app.config['MAIL_SERVER'] = 'smtp.126.com'
+app.config['MAIL_PORT'] = 25
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = MAIL_USERNAME
+app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
+
+
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test?charset=utf8"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
-#db.drop_all(app=app) # Only for debugging
+db.drop_all(app=app) # Only for debugging
 db.create_all(app=app)
 
 login_manager.init_app(app)
 login_manager.session_protection = "strong"
 login_manager.login_view = "login"
+
+mail = Mail(app)
 
 
 #================ USER FUNCTION =============
@@ -40,14 +56,24 @@ login_manager.login_view = "login"
 #        return Validity(False, 'Invalid user id').get_resp()
 
 
+# Verify the current user
+@app.route('/verify_user', methods=['POST'])
+@login_required
+def verify_user():
+    form = {k:request.form[k].strip() for k in request.form}
+    success = current_user.update(code=form['code'])
+    if success:
+        db.session.commit()
+        return Validity(True).get_resp()
+    else:
+        return Validity(False, 'Wrong code').get_resp()
+
+
 # Update the info of current user
 @app.route('/update_user', methods=['POST'])
 @login_required
 def update_user():
     form = {k:request.form[k].strip() for k in request.form}
-    if 'user_id' not in form:
-        assert 'user_username' in form
-        form['user_id'] = utils.get_userid(form['user_username'])
     current_user.update(username=(None if 'username' not in form else form['username']),
                 password=(None if 'password' not in form else form['password']),
                  name=(None if 'name' not in form else form['name']),
@@ -87,7 +113,7 @@ def get_tasklist():
 def get_friend_tasklist():
     ret = []
     for friend in current_user.get_friends():
-        ret.extends([task for task in friend.get_public_tasks()])
+        ret.extend([task for task in friend.get_public_tasks()])
     ret = sorted(ret)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'friend task list': ret}).get_resp()
@@ -99,7 +125,7 @@ def get_friend_tasklist():
 def get_group_tasklist():
     ret = []
     for group in current_user.get_groups():
-        ret.extends([task for task in group.get_tasks()])
+        ret.extend([task for task in group.get_tasks()])
     ret = sorted(ret)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'group task list': ret}).get_resp()
@@ -138,7 +164,7 @@ def delete_friend():
 
 #================ GROUP FUNCTION =============
 # Get info of a group
-@app.route('/get_group', methods=['POST'])
+@app.route('/get_group', methods=['GET'])
 @login_required
 def get_group():
     form = {k:request.form[k].strip() for k in request.form}
@@ -153,7 +179,7 @@ def get_group():
 
 
 # Get group task list
-@app.route('/get_group_task', methods=['POST'])
+@app.route('/get_group_task', methods=['GET'])
 @login_required
 def get_group_task():
     form = {k:request.form[k].strip() for k in request.form}
@@ -170,7 +196,7 @@ def get_group_task():
 
 
 # Get group member list
-@app.route('/get_group_member', methods=['POST'])
+@app.route('/get_group_member', methods=['GET'])
 @login_required
 def get_group_member():
     form = {k:request.form[k].strip() for k in request.form}
@@ -201,17 +227,18 @@ def update_group():
                          owner_id=(None if 'owner_id' not in form else int(form['owner_id'])),
                          info=(None if 'info' not in form else form['info']))
             db.session.commit()
-            return Validity(True).get_resp()
+            return Validity(True, group.get_map_info()).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
     else:
         return Validity(False, 'Invalid group id').get_resp()
 
 # Check the ownership of a group
-@app.route('/check_ownership',methods=['POST'])
+@app.route('/check_ownership',methods=['GET'])
 @login_required
 def check_ownership():
-    if utils.validate_ownership(current_user.id, request.form['group.id']):
+    form = {k:request.form[k].strip() for k in request.form}
+    if utils.validate_ownership(int(current_user.id), int(form['group_id'])):
         return Validity(True).get_resp()
     else:
         return Validity(False).get_resp()
@@ -476,16 +503,36 @@ def delete_task():
 
 #================== User SubSystem (tested) ==================
 
+def send_mail(app, content, email_addr):
+    msg = Message(content,
+                  sender = MAIL_USERNAME,
+                  recipients = [email_addr])
+    with app.app_context():
+        mail.send(msg)
+
 @app.route('/register', methods=['GET','POST'])
 def register():
     form = {k:request.form[k].strip() for k in request.form}
+#    form = {'username': 'zhanghaix', 'password': 'zhanghaix', 'email_addr': '1500010620@pku.edu.cn'}
     print(form['username'], form['password'])
     if utils.validate_username(form['username']):
+        code = None
+        if MAIL_USERNAME:
+            code = utils.get_check_code()
+            content =  'Hello! your checking code is:' + code
+            thread = Thread(target=send_mail, 
+                            args=[app, content , form['email_addr']])
+            thread.start()
         user = User(username=form['username'],
-                    password=form['password']
+                    password=form['password'],
+                    code=code
                     )
         db.session.add(user)
         db.session.commit()
+#        user = User.query.filter_by(username=form['username']).first()
+#        success = user.update(code=code)
+#        print(success)
+#        db.session.commit()
         # login_user(user, remember=True)
         print('valid')
         return Validity(True).get_resp() # 'register succeeds'
@@ -527,29 +574,31 @@ def load_user(user_id):
 def test():
     user = User(username='管理员', password='admin')
     db.session.add(user)
-#    user = User(username='admin1', password='admin1')
-#    db.session.add(user)
-#    user = User(username='admin2', password='admin2')
-#    db.session.add(user)
+    user = User(username='admin1', password='admin1')
+    db.session.add(user)
+    user = User(username='admin2', password='admin2')
+    db.session.add(user)
     db.session.commit()
+#    user1 = membership.query.filter_by(user_id=0).first()
+#    print(user1)
 #    task = Task(1, 'ok', datetime.datetime.now())
 #    db.session.add(task)
 #    task = Task(1, 'ok1', datetime.datetime.now())
 #    db.session.add(task)
 #    db.session.commit()
-#    user1 = User.query.filter_by(id=1).first()
-#    user2 = User.query.filter_by(id=2).first()
-#    user1.add_friend(2)
-#    print(user1.get_friends())
-#    print(user2.get_friends())
-#    db.session.commit()
-#    group = Group('test group', owner_id=1)
-#    db.session.add(group)
-#    group.add_member(2)
-#    db.session.commit()
-#    print(user1.get_ownership())
-#    print(group.get_members())
-#    print(user2.get_groups())
+    user1 = User.query.filter_by(id=1).first()
+    user2 = User.query.filter_by(id=2).first()
+    user1.add_friend(2)
+    print(user1.get_friends())
+    print(user2.get_friends())
+    db.session.commit()
+    group = Group('test group', owner_id=1)
+    db.session.add(group)
+    group.add_member(2)
+    db.session.commit()
+    print(user1.get_ownership())
+    print(group.get_members())
+    print(user2.get_groups())
     
 #    print(User.query.filter_by(id=1).first().__friends)
 #    print(User.query.filter_by(id=2).first().__friends)
@@ -565,6 +614,6 @@ def test():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
-#    app.run(host='127.0.0.1', port=5000, debug=True)
+#    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
+    app.run(host='127.0.0.1', port=5000, debug=True)
     
