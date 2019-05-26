@@ -20,7 +20,8 @@ app = Flask(__name__)
 SECRET_KEY = 'This is my key'
 app.secret_key = SECRET_KEY
 
-MAIL_USERNAME = 'shareddl@126.com'
+MAIL_USERNAME = None
+#MAIL_USERNAME = 'shareddl@126.com'
 MAIL_PASSWORD = 'group4'
 
 app.config['MAIL_SERVER'] = 'smtp.126.com'
@@ -85,7 +86,7 @@ def update_user():
 @app.route('/get_friendlist', methods=['GET'])
 @login_required
 def get_friendlist():
-    ret = sorted([friend for friend in current_user.get_friends()])
+    ret = sorted([friend for friend in current_user.get_friends()], key=lambda v:v.name)
     ret = [friend.get_info_map() for friend in ret]
     return Validity(True, {'friend list': ret}).get_resp()
 
@@ -93,7 +94,7 @@ def get_friendlist():
 @app.route('/get_grouplist', methods=['GET'])
 @login_required
 def get_grouplist():
-    ret = sorted([group for group in current_user.get_groups()])
+    ret = sorted([group for group in current_user.get_groups()], key=lambda v:v.name)
     ret = [group.get_info_map() for group in ret]
     return Validity(True, {'group list': ret}).get_resp()
 
@@ -102,7 +103,7 @@ def get_grouplist():
 @app.route('/get_tasklist', methods=['GET'])
 @login_required
 def get_tasklist():
-    ret = sorted([task for task in current_user.get_tasks()])
+    ret = sorted([task for task in current_user.get_tasks()], key=lambda v:v.finish_time)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'task list': ret}).get_resp()
 
@@ -114,7 +115,7 @@ def get_friend_tasklist():
     ret = []
     for friend in current_user.get_friends():
         ret.extend([task for task in friend.get_public_tasks()])
-    ret = sorted(ret)
+    ret = sorted(ret, key=lambda v:v.finish_time)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'friend task list': ret}).get_resp()
 
@@ -126,7 +127,7 @@ def get_group_tasklist():
     ret = []
     for group in current_user.get_groups():
         ret.extend([task for task in group.get_tasks()])
-    ret = sorted(ret)
+    ret = sorted(ret, key=lambda v:v.finish_time)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'group task list': ret}).get_resp()
 
@@ -186,7 +187,7 @@ def get_group_task():
     if utils.validate_groupid(int(form['group_id'])):
         if utils.validate_membership(int(current_user.id), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
-            ret = sorted([task for task in group.get_tasks()])
+            ret = sorted([task for task in group.get_tasks()], key=lambda v:v.finish_time)
             ret = [group.get_info_map() for group in ret]
             return Validity(True, {'task list': ret}).get_resp()
         else:
@@ -203,7 +204,7 @@ def get_group_member():
     if utils.validate_groupid(int(form['group_id'])):
         if utils.validate_membership(int(current_user.id), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
-            ret = sorted([user for user in group.get_members()])
+            ret = sorted([user for user in group.get_members()], key=lambda v:v.name)
             ret = [user.get_info_map() for user in ret]
             return Validity(True, {'member list': ret}).get_resp()
         else:

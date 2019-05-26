@@ -118,8 +118,8 @@ class User(UserMixin, db.Model):
         self.__verified = False
         self.__verify_code = code
 
-    def __cmp__(self, other):
-        return self.name < other.name
+#    def __cmp__(self, other):
+#        return self.name < other.name
 
     def get_id(self):
         return self.id
@@ -216,8 +216,8 @@ class Group(db.Model):
         user = User.query.filter_by(id=owner_id).first()
         self.__members.append(user)
 
-    def __cmp__(self, other):
-        return self.name < other.name
+#    def __cmp__(self, other):
+#        return self.name < other.name
 
     def get_id(self):
         return self.id
@@ -302,8 +302,8 @@ class Task(db.Model):
             self.__group_id = None
         self.__info = info
 
-    def __cmp__(self, other):
-        return self.finish_time < other.finish_time
+#    def __cmp__(self, other):
+#        return self.finish_time < other.finish_time
 
     def get_id(self):
         return self.id
