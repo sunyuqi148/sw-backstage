@@ -34,7 +34,7 @@ app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test?charset=utf8"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
-db.drop_all(app=app) # Only for debugging
+# db.drop_all(app=app) # Only for debugging
 db.create_all(app=app)
 
 login_manager.init_app(app)

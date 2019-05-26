@@ -203,7 +203,7 @@ class Group(db.Model):
     __memberReqs = db.relationship('User',
                                    secondary=memberReq,
                                    lazy='subquery',
-                                   backref=db.backref('groups', lazy=True)
+                                   backref=db.backref('groupsReqs', lazy=True)
                                    )
     __table_args__ = {
         "mysql_charset": "utf8"
