@@ -52,7 +52,7 @@ friendReq = db.Table('friendReq',
                     )
 
 # Member requests
-MemberReq = db.Table('memberReq',
+memberReq = db.Table('memberReq',
                      db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                      db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True)                  
                     )
@@ -72,6 +72,12 @@ class User(UserMixin, db.Model):
                                 secondary = friendship, 
                                 primaryjoin = (friendship.c.user_id == id), 
                                 secondaryjoin = (friendship.c.friend_id == id),
+                                lazy = 'subquery'
+                                )
+    __friendReqs = db.relationship('User', 
+                                secondary = friendReq, 
+                                primaryjoin = (friendReq.c.user_id == id), 
+                                secondaryjoin = (friendReq.c.friend_id == id),
                                 lazy = 'subquery'
                                 )
     __ownership = db.relationship('Group',
@@ -171,6 +177,11 @@ class Group(db.Model):
                                 lazy='subquery',
                                 backref=db.backref('groups', lazy=True)
                                 )
+    __memberReqs = db.relationship('User',
+                                   secondary=memberReq,
+                                   lazy='subquery',
+                                   backref=db.backref('groups', lazy=True)
+                                  )
     
     __table_args__ = {
                     "mysql_charset" : "utf8"
