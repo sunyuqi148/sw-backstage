@@ -109,16 +109,21 @@ def get_tasklist():
 
 
 # Get public tasks of friends
-@app.route('/get_friend_tasklist', methods=['GET'])
+@app.route('/get_friend_tasklist', methods=['POST'])
 @login_required
 def get_friend_tasklist():
-    ret = []
-    for friend in current_user.get_friends():
-        ret.extend([task for task in friend.get_public_tasks()])
-    ret = sorted(ret, key=lambda v:v.finish_time)
-    ret = [task.get_info_map() for task in ret]
-    return Validity(True, {'friend task list': ret}).get_resp()
-
+    if request.form is None or 'friend_username' not in request.form:
+        ret = []
+        for friend in current_user.get_friends():
+            ret.extend([task for task in friend.get_public_tasks()])
+        ret = sorted(ret, key=lambda v:v.finish_time)
+        ret = [task.get_info_map() for task in ret]
+        return Validity(True, {'friend task list': ret}).get_resp()
+    else:
+        form = {k:request.form[k].strip() for k in request.form}
+        friend = User.query.filter_by(username=form['friend_username']).first()
+        ret = sorted([task for task in friend.get_public_tasks()], key=lambda v:v.finish_time)
+        return Validity(True, {'friend task list': ret}).get_resp()
 
 # Get group tasks of the user
 @app.route('/get_group_tasklist', methods=['GET'])
@@ -615,6 +620,6 @@ def test():
 
 
 if __name__ == "__main__":
-#    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, ssl_context='adhoc')
+#    app.run(host='127.0.0.1', port=5000, debug=True)
     
