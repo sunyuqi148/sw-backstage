@@ -118,8 +118,8 @@ class User(UserMixin, db.Model):
         self.__verified = False
         self.__verify_code = code
 
-    def __cmp__(self, other):
-        return self.name < other.name
+#    def __cmp__(self, other):
+#        return self.name < other.name
 
     def get_id(self):
         return self.id
@@ -127,8 +127,14 @@ class User(UserMixin, db.Model):
     def get_friends(self):
         return self.__friends
 
+    def get_friendreqs(self):
+        return self.__friendReqs
+
     def get_groups(self):
         return self.groups
+
+    def get_groupsReqs(self):
+        return self.groupsReqs
 
     def get_ownership(self):
         return self.__ownership
@@ -177,6 +183,15 @@ class User(UserMixin, db.Model):
         friend = User.query.filter_by(id=friend_id).first()
         self.__friends.append(friend)
 
+    def add_friendReq(self,friend_id):
+        friend = User.query.filter_by(id=friend_id).first()
+        self.__friendReqs.append(friend)
+
+    def agree_friendReq(self, friend_id):
+        friend = User.query.filter_by(id=friend_id).first()
+        self.__friends.append(friend)
+        self.__friendReqs.remove(friend)
+
     def delete_friend(self, friend_id):
         friend = User.query.filter_by(id=friend_id).first()
         if friend in self.__friends:
@@ -203,7 +218,7 @@ class Group(db.Model):
     __memberReqs = db.relationship('User',
                                    secondary=memberReq,
                                    lazy='subquery',
-                                   backref=db.backref('groups', lazy=True)
+                                   backref=db.backref('groupsReqs', lazy=True)
                                    )
     __table_args__ = {
         "mysql_charset": "utf8"
@@ -216,8 +231,8 @@ class Group(db.Model):
         user = User.query.filter_by(id=owner_id).first()
         self.__members.append(user)
 
-    def __cmp__(self, other):
-        return self.name < other.name
+#    def __cmp__(self, other):
+#        return self.name < other.name
 
     def get_id(self):
         return self.id
@@ -225,6 +240,11 @@ class Group(db.Model):
     def add_member(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         self.__members.append(user)
+        self.__memberReqs.remove(user)
+
+    def add_memberReq(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+        self.__memberReqs.append(user)
 
     def delete_member(self, user_id):
         user = User.query.filter_by(id=user_id).first()
@@ -233,6 +253,9 @@ class Group(db.Model):
 
     def get_members(self):
         return self.__members
+
+    def get_memberReqs(self):
+        return self.__memberReqs
 
     #    def add_task(self, task_id):
     #        task = Task.query.filter_by(id=task_id).first()
@@ -302,8 +325,8 @@ class Task(db.Model):
             self.__group_id = None
         self.__info = info
 
-    def __cmp__(self, other):
-        return self.finish_time < other.finish_time
+#    def __cmp__(self, other):
+#        return self.finish_time < other.finish_time
 
     def get_id(self):
         return self.id

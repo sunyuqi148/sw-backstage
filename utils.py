@@ -46,6 +46,16 @@ def validate_friendship(user_id, friend_id):
         return False
 
 
+def validate_friendreqs(user_id, friend_id):
+    if validate_userid(user_id):
+        user = User.query.filter_by(id=user_id).first()
+        friend_reqs = [friend.id for friend in user.get_friendreqs()]
+        if friend_id in friend_reqs:
+            return True
+        else:
+            return False
+
+
 # Ownership if a group
 def validate_ownership(user_id, group_id):
     if Group.query.filter_by(id = group_id, owner_id = user_id).first():
@@ -57,6 +67,15 @@ def validate_ownership(user_id, group_id):
 def validate_membership(user_id, group_id):
     group = Group.query.filter_by(id=group_id).first()
     member_ids = [member.id for member in group.get_members()]
+    if group is not None and user_id in member_ids:
+        return True
+    else:
+        return False
+
+
+def validate_groupreqs(user_id, group_id):
+    group = Group.query.filter_by(id=group_id).first()
+    member_ids = [member.id for member in group.get_memberReqs()]
     if group is not None and user_id in member_ids:
         return True
     else:

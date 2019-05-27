@@ -20,7 +20,8 @@ app = Flask(__name__)
 SECRET_KEY = 'This is my key'
 app.secret_key = SECRET_KEY
 
-MAIL_USERNAME = 'shareddl@126.com'
+MAIL_USERNAME = None
+#MAIL_USERNAME = 'shareddl@126.com'
 MAIL_PASSWORD = 'group4'
 
 app.config['MAIL_SERVER'] = 'smtp.126.com'
@@ -33,7 +34,7 @@ app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1/test?charset=utf8"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
-db.drop_all(app=app) # Only for debugging
+# db.drop_all(app=app) # Only for debugging
 db.create_all(app=app)
 
 login_manager.init_app(app)
@@ -51,7 +52,7 @@ mail = Mail(app)
 #    form = {k:request.form[k].strip() for k in request.form}
 #    if utils.validate_userid(int(form['user_id'])):
 #        user = User.query.filter_by(id=int(form['user_id'])).first()
-#        return Validity(True, user.get_map_info())
+#        return Validity(True, user.get_info_map())
 #    else:
 #        return Validity(False, 'Invalid user id').get_resp()
 
@@ -85,39 +86,60 @@ def update_user():
 @app.route('/get_friendlist', methods=['GET'])
 @login_required
 def get_friendlist():
-    ret = sorted([friend for friend in current_user.get_friends()])
+    ret = sorted([friend for friend in current_user.get_friends()], key=lambda v:v.name)
     ret = [friend.get_info_map() for friend in ret]
     return Validity(True, {'friend list': ret}).get_resp()
+
+
+@app.route('/get_friendreq', methods=['GET'])
+@login_required
+def get_friendreq():
+    ret = sorted([friendreq for friendreq in current_user.get_friendreqs()], key=lambda v:v.name)
+    ret = [friend.get_info_map() for friend in ret]
+    return Validity(True, {'friend requests': ret}).get_resp()
 
 
 @app.route('/get_grouplist', methods=['GET'])
 @login_required
 def get_grouplist():
-    ret = sorted([group for group in current_user.get_groups()])
+    ret = sorted([group for group in current_user.get_groups()], key=lambda v:v.name)
     ret = [group.get_info_map() for group in ret]
     return Validity(True, {'group list': ret}).get_resp()
+
+
+@app.route('/get_groupreq', methods=['GET'])
+@login_required
+def get_groupreq():
+    ret = sorted([groupReq for groupReq in current_user.get_groupsReqs()], key=lambda v:v.name)
+    ret = [group.get_info_map() for group in ret]
+    return Validity(True, {'group invitations': ret}).get_resp()
 
 
 # Get all tasks of the user
 @app.route('/get_tasklist', methods=['GET'])
 @login_required
 def get_tasklist():
-    ret = sorted([task for task in current_user.get_tasks()])
+    ret = sorted([task for task in current_user.get_tasks()], key=lambda v:v.finish_time)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'task list': ret}).get_resp()
 
 
 # Get public tasks of friends
-@app.route('/get_friend_tasklist', methods=['GET'])
+@app.route('/get_friend_tasklist', methods=['POST'])
 @login_required
 def get_friend_tasklist():
-    ret = []
-    for friend in current_user.get_friends():
-        ret.extend([task for task in friend.get_public_tasks()])
-    ret = sorted(ret)
-    ret = [task.get_info_map() for task in ret]
-    return Validity(True, {'friend task list': ret}).get_resp()
-
+    if request.form is None or 'friend_username' not in request.form:
+        ret = []
+        for friend in current_user.get_friends():
+            ret.extend([task for task in friend.get_public_tasks()])
+        ret = sorted(ret, key=lambda v:v.finish_time)
+        ret = [task.get_info_map() for task in ret]
+        return Validity(True, {'friend task list': ret}).get_resp()
+    else:
+        form = {k:request.form[k].strip() for k in request.form}
+        friend = User.query.filter_by(username=form['friend_username']).first()
+        ret = sorted([task for task in friend.get_public_tasks()], key=lambda v:v.finish_time)
+        return Validity(True, {'friend task list': ret}).get_resp()
 
 # Get group tasks of the user
 @app.route('/get_group_tasklist', methods=['GET'])
@@ -126,7 +148,7 @@ def get_group_tasklist():
     ret = []
     for group in current_user.get_groups():
         ret.extend([task for task in group.get_tasks()])
-    ret = sorted(ret)
+    ret = sorted(ret, key=lambda v:v.finish_time)
     ret = [task.get_info_map() for task in ret]
     return Validity(True, {'group task list': ret}).get_resp()
 
@@ -140,12 +162,27 @@ def add_friend():
         form['friend_id'] = utils.get_userid(form['friend_username'])
     if not utils.validate_userid(int(form['friend_id'])) or utils.validate_friendship(int(current_user.id), int(form['friend_id'])):
         return Validity(False, 'User ' + form['friend_id'] + ' does not exist.').get_resp()
+    if utils.validate_friendreqs(int(current_user.id), int(form['friend_id'])):
+        return Validity(False, 'Request already sent.').get_resp()
     friend = User.query.filter_by(id = int(form['friend_id'])).first()
-    current_user.add_friend(int(form['friend_id']))
-    friend.add_friend(int(current_user.id))
+    current_user.add_friendReq(int(form['friend_id']))
+    # friend.add_friend(int(current_user.id))
     db.session.commit()
     return Validity(True).get_resp()
 
+@login_required
+def agree_friendReqs():
+    form = {k:request.form[k].strip() for k in request.form}
+    if 'friend_id' not in form:
+        assert 'friend_username' in form
+        form['friend_id'] = utils.get_userid(form['friend_username'])
+    if not utils.validate_friendreqs(int(form['friend_id']), int(current_user.id)):
+        return Validity(False, 'Request does not exist.').get_resp()
+    friend = User.query.filter_by(id=int(form['friend_id'])).first()
+    friend.agree_friendReq(int(current_user.id))
+    current_user.add_friend(int(form['friend_id']))
+    db.session.commit()
+    return Validity(True).get_resp()
 
 @app.route('/delete_friend', methods=['POST'])
 @login_required
@@ -171,7 +208,7 @@ def get_group():
     if utils.validate_groupid(int(form['group_id'])):
 #        if utils.validate_membership(current_user.id, int(form['group_id'])):
         group = Group.query.filter_by(id = int(form['group_id'])).first()
-        return Validity(True, group.get_map_info())
+        return Validity(True, group.get_info_map())
 #        else:
 #            return Validity(False, 'No access').get_resp()
     else:
@@ -186,7 +223,7 @@ def get_group_task():
     if utils.validate_groupid(int(form['group_id'])):
         if utils.validate_membership(int(current_user.id), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
-            ret = sorted([task for task in group.get_tasks()])
+            ret = sorted([task for task in group.get_tasks()], key=lambda v:v.finish_time)
             ret = [group.get_info_map() for group in ret]
             return Validity(True, {'task list': ret}).get_resp()
         else:
@@ -203,7 +240,7 @@ def get_group_member():
     if utils.validate_groupid(int(form['group_id'])):
         if utils.validate_membership(int(current_user.id), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
-            ret = sorted([user for user in group.get_members()])
+            ret = sorted([user for user in group.get_members()], key=lambda v:v.name)
             ret = [user.get_info_map() for user in ret]
             return Validity(True, {'member list': ret}).get_resp()
         else:
@@ -227,7 +264,7 @@ def update_group():
                          owner_id=(None if 'owner_id' not in form else int(form['owner_id'])),
                          info=(None if 'info' not in form else form['info']))
             db.session.commit()
-            return Validity(True, group.get_map_info()).get_resp()
+            return Validity(True, group.get_info_map()).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
     else:
@@ -337,23 +374,23 @@ def delete_group():
         return Validity(False, 'Invalid group id').get_resp()
 
 
-# Join a group
+# Agree to join a group
 @app.route('/join_group', methods=['POST'])
 @login_required
 def join_group():
     form = {k:request.form[k].strip() for k in request.form}
     if utils.validate_groupid(group_id=int(form['group_id'])):
-        if not utils.validate_membership(int(current_user.id), int(form['group_id'])):
+        if not utils.validate_groupreqs(int(current_user.id), int(form['group_id'])):
+            return Validity(False, 'Invitation does not exist.')
+        else:
             group = Group.query.filter_by(id=int(form['group_id'])).first()
             group.add_member(int(current_user.id))
             db.session.commit()
             return Validity(True).get_resp()
-        else:
-            return Validity(False, 'Already in the group').get_resp()
     else:
         return Validity(False, 'Invalid group id').get_resp()
 
-
+# CAN BE DELETE
 # Quit a group
 @app.route('/quit_group', methods=['POST'])
 @login_required
@@ -379,10 +416,14 @@ def add_member():
     if 'user_id' not in form:
         assert 'user_username' in form
         form['user_id'] = utils.get_userid(form['user_username'])
+    if utils.validate_userid(int(form['user_id'])):
+        return Validity(False, 'Invalid user.')
     if utils.validate_groupid(group_id=int(form['group_id'])):
+        if  utils.validate_groupreqs(int(form['user_id']), int(form['group_id'])):
+            return Validity(False, 'Invitation already sent.').get_resp()
         if not utils.validate_membership(int(form['user_id']), int(form['group_id'])):
             group = Group.query.filter_by(id=int(form['group_id'])).first()
-            group.add_member(int(form['user_id']))
+            group.add_memberReq(int(form['user_id']))
             db.session.commit()
             return Validity(True).get_resp()
         else:
@@ -420,7 +461,7 @@ def get_task():
     form = {k:request.form[k].strip() for k in request.form}
     if utils.validate_taskid(int(form['task_id'])):
         task = Task.query.filter_by(id=int(form['task_id'])).first()
-        return Validity(True, task.get_map_info())
+        return Validity(True, task.get_info_map())
     else:
         return Validity(False, 'Invalid task id').get_resp()
     
@@ -614,6 +655,6 @@ def test():
 
 
 if __name__ == "__main__":
-#    app.run(host='0.0.0.0', port=80, debug=True, ssl_context='adhoc')
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, ssl_context='adhoc')
+#    app.run(host='127.0.0.1', port=5000, debug=True)
     
