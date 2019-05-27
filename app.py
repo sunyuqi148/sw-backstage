@@ -52,7 +52,7 @@ mail = Mail(app)
 #    form = {k:request.form[k].strip() for k in request.form}
 #    if utils.validate_userid(int(form['user_id'])):
 #        user = User.query.filter_by(id=int(form['user_id'])).first()
-#        return Validity(True, user.get_map_info())
+#        return Validity(True, user.get_info_map())
 #    else:
 #        return Validity(False, 'Invalid user id').get_resp()
 
@@ -172,7 +172,7 @@ def get_group():
     if utils.validate_groupid(int(form['group_id'])):
 #        if utils.validate_membership(current_user.id, int(form['group_id'])):
         group = Group.query.filter_by(id = int(form['group_id'])).first()
-        return Validity(True, group.get_map_info())
+        return Validity(True, group.get_info_map())
 #        else:
 #            return Validity(False, 'No access').get_resp()
     else:
@@ -228,7 +228,7 @@ def update_group():
                          owner_id=(None if 'owner_id' not in form else int(form['owner_id'])),
                          info=(None if 'info' not in form else form['info']))
             db.session.commit()
-            return Validity(True, group.get_map_info()).get_resp()
+            return Validity(True, group.get_info_map()).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
     else:
@@ -421,7 +421,7 @@ def get_task():
     form = {k:request.form[k].strip() for k in request.form}
     if utils.validate_taskid(int(form['task_id'])):
         task = Task.query.filter_by(id=int(form['task_id'])).first()
-        return Validity(True, task.get_map_info())
+        return Validity(True, task.get_info_map())
     else:
         return Validity(False, 'Invalid task id').get_resp()
     
