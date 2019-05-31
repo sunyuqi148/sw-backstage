@@ -7,7 +7,7 @@ from models import User, Group, Task
 # Validating methods
 def validate_userid(user_id):
     user=User.query.filter_by(id=user_id).first()
-    if user is NONE:
+    if user is None:
         return False
     else:
         return True
