@@ -130,6 +130,9 @@ class User(UserMixin, db.Model):
 
     def get_friendreqs(self):
         return self.applicant
+    
+    def get_myreqs(self):
+        return self.__friendReqs
 
     def get_groups(self):
         return self.groups
