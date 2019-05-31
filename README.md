@@ -40,7 +40,7 @@ $ sudo python3 app.py
 
 	route: https://222.29.159.164:10006/register
 	
-	request: username, password
+	request: username, password, email_addr
 	
 	response: 
 	
@@ -75,6 +75,18 @@ $ sudo python3 app.py
 ​	request: username, password, name, info
 
 ​	response: valid(=True)
+
+##### verify_user:
+
+	route: https://222.29.159.164:10006/verify_user
+
+​	request: code
+
+​		1. 若成功，返回信息包含: valid(=true)
+
+​		2. 若失败，返回错误信息: valid(=false), info(字符串，错误信息)
+
+
 
 
 #### 任务管理子系统：
