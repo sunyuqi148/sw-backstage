@@ -93,6 +93,7 @@ class User(UserMixin, db.Model):
                                    secondary=friendReq,
                                    primaryjoin=(friendReq.c.user_id == id),
                                    secondaryjoin=(friendReq.c.friend_id == id),
+                                   backref=db.backref('applicant', lazy=True),
                                    lazy='subquery'
                                    )
     __ownership = db.relationship('Group',
@@ -128,7 +129,7 @@ class User(UserMixin, db.Model):
         return self.__friends
 
     def get_friendreqs(self):
-        return self.__friendReqs
+        return self.applicant
 
     def get_groups(self):
         return self.groups
