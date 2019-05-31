@@ -16,11 +16,11 @@
 
 **子系统1**：单人使用ShareDDL的主要用况
 
-![use case1](https://github.com/sunyuqi148/sw-backstage/tree/master/data/image/UseCase1.jpg)
+![use case1](https://raw.githubusercontent.com/sunyuqi148/sw-backstage/master/data/image/UseCase1.jpg)
 
 **子系统2**：团队DDL管理用况图
 
-![use case2](https://github.com/sunyuqi148/sw-backstage/tree/master/data/image/UseCase2.jpg)
+![use case2](https://raw.githubusercontent.com/sunyuqi148/sw-backstage/master/data/image/UseCase2.jpg)
 
 ### 前后端API
 
@@ -40,7 +40,7 @@ $ sudo python3 app.py
 
 	route: https://222.29.159.164:10006/register
 	
-	request: username, password
+	request: username, password, email_addr
 	
 	response: 
 	
@@ -75,6 +75,18 @@ $ sudo python3 app.py
 ​	request: username, password, name, info
 
 ​	response: valid(=True)
+
+##### verify_user:
+
+	route: https://222.29.159.164:10006/verify_user
+
+​	request: code
+
+​		1. 若成功，返回信息包含: valid(=true)
+
+​		2. 若失败，返回错误信息: valid(=false), info(字符串，错误信息)
+
+
 
 
 #### 任务管理子系统：
@@ -236,7 +248,9 @@ $ sudo python3 app.py
 
 	route: https://222.29.159.164:10006/get_group_task
 
-​	method: GET
+    method: GET
+
+    request: group_id
 
 ​	response: 若获取成功，{valid: true, task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
 
@@ -247,6 +261,8 @@ $ sudo python3 app.py
 	route: https://222.29.159.164:10006/get_group_tasklist
 	
 	method: GET
+	
+	request: /    (return tasks in all groups)
 	
 	response: {valid: true, 
 			group task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
