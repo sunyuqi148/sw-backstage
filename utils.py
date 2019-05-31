@@ -49,7 +49,7 @@ def validate_friendship(user_id, friend_id):
 def validate_friendreqs(user_id, friend_id):
     if validate_userid(user_id):
         user = User.query.filter_by(id=user_id).first()
-        friend_reqs = [friend.id for friend in user.get_friendreqs()]
+        friend_reqs = [friend.id for friend in user.get_myreqs()]
         if friend_id in friend_reqs:
             return True
         else:
