@@ -177,7 +177,7 @@ def agree_friendReqs():
     if 'friend_id' not in form:
         assert 'friend_username' in form
         form['friend_id'] = utils.get_userid(form['friend_username'])
-    if not utils.validate_friendreqs(int(form['friend_id']), int(current_user.id)):
+    if not utils.validate_friendreqs(int(current_user.id), int(form['friend_id'])):
         return Validity(False, 'Request does not exist.').get_resp()
     friend = User.query.filter_by(id=int(form['friend_id'])).first()
     friend.agree_friendReq(int(current_user.id))
