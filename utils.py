@@ -6,10 +6,11 @@ from models import User, Group, Task
 
 # Validating methods
 def validate_userid(user_id):
-    if User.query.filter_by(id=user_id).first():
-        return True
-    else:
+    user=User.query.filter_by(id=user_id).first()
+    if user is NONE:
         return False
+    else:
+        return True
 
 
 # when new add a user, check whether there is a same username
