@@ -93,6 +93,7 @@ class User(UserMixin, db.Model):
                                    secondary=friendReq,
                                    primaryjoin=(friendReq.c.user_id == id),
                                    secondaryjoin=(friendReq.c.friend_id == id),
+                                   backref=db.backref('applicant', lazy='dynamic'),
                                    lazy='subquery'
                                    )
     __ownership = db.relationship('Group',
@@ -127,8 +128,17 @@ class User(UserMixin, db.Model):
     def get_friends(self):
         return self.__friends
 
+    def get_friendreqs(self):
+        return self.applicant
+    
+    def get_myreqs(self):
+        return self.__friendReqs
+
     def get_groups(self):
         return self.groups
+
+    def get_groupsReqs(self):
+        return self.groupsReqs
 
     def get_ownership(self):
         return self.__ownership
@@ -176,6 +186,15 @@ class User(UserMixin, db.Model):
     def add_friend(self, friend_id):
         friend = User.query.filter_by(id=friend_id).first()
         self.__friends.append(friend)
+
+    def add_friendReq(self,friend_id):
+        friend = User.query.filter_by(id=friend_id).first()
+        self.__friendReqs.append(friend)
+
+    def agree_friendReq(self, friend_id):
+        friend = User.query.filter_by(id=friend_id).first()
+        self.__friends.append(friend)
+        self.__friendReqs.remove(friend)
 
     def delete_friend(self, friend_id):
         friend = User.query.filter_by(id=friend_id).first()
@@ -225,6 +244,11 @@ class Group(db.Model):
     def add_member(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         self.__members.append(user)
+        self.__memberReqs.remove(user)
+
+    def add_memberReq(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+        self.__memberReqs.append(user)
 
     def delete_member(self, user_id):
         user = User.query.filter_by(id=user_id).first()
@@ -233,6 +257,9 @@ class Group(db.Model):
 
     def get_members(self):
         return self.__members
+
+    def get_memberReqs(self):
+        return self.__memberReqs
 
     #    def add_task(self, task_id):
     #        task = Task.query.filter_by(id=task_id).first()
