@@ -170,6 +170,7 @@ def add_friend():
     db.session.commit()
     return Validity(True).get_resp()
 
+@app.route('/agree_friendReqs', methods=['POST'])
 @login_required
 def agree_friendReqs():
     form = {k:request.form[k].strip() for k in request.form}
