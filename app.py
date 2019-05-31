@@ -211,7 +211,7 @@ def get_group():
     if utils.validate_groupid(int(form['group_id'])):
 #        if utils.validate_membership(current_user.id, int(form['group_id'])):
         group = Group.query.filter_by(id = int(form['group_id'])).first()
-        return Validity(True, group.get_info_map())
+        return Validity(True, group.get_info_map()).get_resp()
 #        else:
 #            return Validity(False, 'No access').get_resp()
     else:
@@ -384,7 +384,7 @@ def join_group():
     form = {k:request.form[k].strip() for k in request.form}
     if utils.validate_groupid(group_id=int(form['group_id'])):
         if not utils.validate_groupreqs(int(current_user.id), int(form['group_id'])):
-            return Validity(False, 'Invitation does not exist.')
+            return Validity(False, 'Invitation does not exist.').get_resp()
         else:
             group = Group.query.filter_by(id=int(form['group_id'])).first()
             group.add_member(int(current_user.id))
@@ -464,7 +464,7 @@ def get_task():
     form = {k:request.form[k].strip() for k in request.form}
     if utils.validate_taskid(int(form['task_id'])):
         task = Task.query.filter_by(id=int(form['task_id'])).first()
-        return Validity(True, task.get_info_map())
+        return Validity(True, task.get_info_map()).get_resp()
     else:
         return Validity(False, 'Invalid task id').get_resp()
     
