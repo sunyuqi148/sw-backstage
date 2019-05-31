@@ -419,8 +419,8 @@ def add_member():
     if 'user_id' not in form:
         assert 'user_username' in form
         form['user_id'] = utils.get_userid(form['user_username'])
-    if utils.validate_userid(int(form['user_id'])):
-        return Validity(False, 'Invalid user.')
+    if not utils.validate_userid(int(form['user_id'])):
+        return Validity(False, 'Invalid user.').get_resp()
     if utils.validate_groupid(group_id=int(form['group_id'])):
         if  utils.validate_groupreqs(int(form['user_id']), int(form['group_id'])):
             return Validity(False, 'Invitation already sent.').get_resp()
