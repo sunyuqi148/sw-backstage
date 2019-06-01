@@ -426,6 +426,8 @@ def add_member():
     form = {k:request.form[k].strip() for k in request.form}
     if 'user_id' not in form:
         assert 'user_username' in form
+        if utils.validate_username(int(form['user_username'])):
+            return Validaty(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
         form['user_id'] = utils.get_userid(form['user_username'])
     if not utils.validate_userid(int(form['user_id'])):
         return Validity(False, 'Invalid user.').get_resp()
@@ -450,6 +452,8 @@ def delete_member():
     form = {k:request.form[k].strip() for k in request.form}
     if 'user_id' not in form:
         assert 'user_username' in form
+        if utils.validate_username(int(form['user_username'])):
+            return Validaty(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
         form['user_id'] = utils.get_userid(form['user_username'])
     if utils.validate_groupid(group_id=int(form['group_id'])):
         if utils.validate_membership(int(form['user_id']), int(form['group_id'])) and not utils.validate_ownership(int(form['user_id']), int(form['group_id'])):
