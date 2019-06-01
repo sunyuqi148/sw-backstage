@@ -136,7 +136,7 @@ def get_friend_tasklist():
         ret = [task.get_info_map() for task in ret]
         return Validity(True, {'friend task list': ret}).get_resp()
     else:
-        if utils.validate_username(int(form['friend_username'])):
+        if utils.validate_username(form['friend_username']):
             return Validity(False, 'User '+form['friend_username']+' does not exist.').get_resp()
         form = {k:request.form[k].strip() for k in request.form}
         friend = User.query.filter_by(username=form['friend_username']).first()
@@ -161,7 +161,7 @@ def add_friend():
     form = {k:request.form[k].strip() for k in request.form}
     if 'friend_id' not in form:
         assert 'friend_username' in form
-        if utils.validate_username(int(form['friend_username'])):
+        if utils.validate_username(form['friend_username']):
             return Validaty(False, 'User ' + form['friend_username'] + ' does not exist.').get_resp()
         form['friend_id'] = utils.get_userid(form['friend_username'])
     if utils.validate_friendship(int(current_user.id), int(form['friend_id'])):
@@ -180,7 +180,7 @@ def agree_friendReqs():
     form = {k:request.form[k].strip() for k in request.form}
     if 'friend_id' not in form:
         assert 'friend_username' in form
-        if utils.validate_username(int(form['friend_username'])):
+        if utils.validate_username(form['friend_username']):
             return Validity(False, 'User '+form['friend_username']+' does not exist.').get_resp()
         form['friend_id'] = utils.get_userid(form['friend_username'])
     if not utils.validate_friendreqs(int(form['friend_id']), int(current_user.id)):
@@ -197,7 +197,7 @@ def delete_friend():
     form = {k:request.form[k].strip() for k in request.form}
     if 'friend_id' not in form:
         assert 'friend_username' in form
-        if utils.validate_username(int(form['friend_username'])):
+        if utils.validate_username(form['friend_username']):
             return Validity(False, 'User '+form['friend_username']+' does not exist.').get_resp()
         form['friend_id'] = utils.get_userid(form['friend_username'])
     if not utils.validate_userid(int(form['friend_id'])) or not utils.validate_friendship(int(current_user.id), int(form['friend_id'])):
@@ -265,7 +265,7 @@ def update_group():
     form = {k:request.form[k].strip() for k in request.form}
     if 'owner_id' not in form:
         assert 'owner_username' in form
-        if utils.validate_username(int(form['owner_username'])):
+        if utils.validate_username(form['owner_username']):
             return Validity(False, 'User '+form['owner_username']+' does not exist.').get_resp()
         form['owner_id'] = utils.get_userid(form['owner_username'])
     if utils.validate_groupid(int(form['group_id'])):
@@ -426,7 +426,7 @@ def add_member():
     form = {k:request.form[k].strip() for k in request.form}
     if 'user_id' not in form:
         assert 'user_username' in form
-        if utils.validate_username(int(form['user_username'])):
+        if utils.validate_username(form['user_username']):
             return Validaty(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
         form['user_id'] = utils.get_userid(form['user_username'])
     if not utils.validate_userid(int(form['user_id'])):
@@ -452,7 +452,7 @@ def delete_member():
     form = {k:request.form[k].strip() for k in request.form}
     if 'user_id' not in form:
         assert 'user_username' in form
-        if utils.validate_username(int(form['user_username'])):
+        if utils.validate_username(form['user_username']):
             return Validaty(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
         form['user_id'] = utils.get_userid(form['user_username'])
     if utils.validate_groupid(group_id=int(form['group_id'])):
