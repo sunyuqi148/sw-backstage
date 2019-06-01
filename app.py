@@ -165,7 +165,7 @@ def add_friend():
             return Validaty(False, 'User ' + form['friend_username'] + ' does not exist.').get_resp()
         form['friend_id'] = utils.get_userid(form['friend_username'])
     if utils.validate_friendship(int(current_user.id), int(form['friend_id'])):
-        return Validity(False, 'User ' + form['friend_username'] + ' has already been your friends.').get_resp()
+        return Validity(False, 'User ' + form['friend_username'] + ' has already been your friend.').get_resp()
     if utils.validate_friendreqs(int(current_user.id), int(form['friend_id'])):
         return Validity(False, 'Request already sent.').get_resp()
     friend = User.query.filter_by(id = int(form['friend_id'])).first()
