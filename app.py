@@ -136,9 +136,9 @@ def get_friend_tasklist():
         ret = [task.get_info_map() for task in ret]
         return Validity(True, {'friend task list': ret}).get_resp()
     else:
+        form = {k:request.form[k].strip() for k in request.form}
         if utils.validate_username(form['friend_username']):
             return Validity(False, 'User '+form['friend_username']+' does not exist.').get_resp()
-        form = {k:request.form[k].strip() for k in request.form}
         friend = User.query.filter_by(username=form['friend_username']).first()
         ret = sorted([task for task in friend.get_public_tasks()], key=lambda v:v.finish_time)
         return Validity(True, {'friend task list': ret}).get_resp()
