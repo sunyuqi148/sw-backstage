@@ -107,7 +107,7 @@ $ sudo python3 app.py
 
 ​	method: GET
 
-​	response: valid(=True), list[task(id, owner_id, title, deadline, ...), ...]
+​	response: {valid: true, task list: [task(id, owner_id, title, deadline, ...), ...]}
 
 ##### create_task:
 
@@ -214,6 +214,22 @@ $ sudo python3 app.py
 	
 			否则valid=false, info
 			
+##### get_grouplist:
+
+	route: https://222.29.159.164:10006/get_grouplist
+
+​	method: GET
+
+​	response: {valid: true, group list: [group(group_id, name, info), ...]}
+
+##### get_groupreq:
+
+	route: https://222.29.159.164:10006/get_groupreq
+
+​	method: GET
+
+​	response: {valid: true, group invitations: [group(group_id, name, info), ...]}
+			
 ##### get_group_member:
 
 	route: https://222.29.159.164:10006/get_group_member
@@ -228,21 +244,21 @@ $ sudo python3 app.py
 
 	route: https://222.29.159.164:10006/add_member
 	
-	request: group_id, user_id
+	request: group_id, user_id | user_username
 	
-	response: 若添加成功，valid=true
+	response: 若添加成功，{valid: true}
 			
-			否则valid, info
+			否则 {valid: false, info}
 	
 ##### delete_member:
 
 	route: https://222.29.159.164:10006/delete_member
 	
-	request: group_id, user_id
+	request: group_id, user_id | user_username
 	
-	response: 若删除成功, valid=true
+	response: 若删除成功, {valid: true}
 	
-			否则valid, info
+			否则 {valid: false, info}
 
 ##### get_group_task:
 
@@ -318,9 +334,21 @@ $ sudo python3 app.py
 
 	route: https://222.29.159.164:10006/add_friend
 	
-	request: friend_id
+	request: friend_id | friend_username
 	
-	response: valid=true
+	response: 若添加好友成功，返回 {valid: true}
+	
+			否则，返回 {valid: false}
+	
+##### agree_friendReqs:
+
+	route: https://222.29.159.164:10006/agree_friendReqs
+	
+	request: friend_id | friend_username
+	
+	response: 若通过好友添加请求的操作合法， {valid: true}
+	
+			否则， {valid: false, info}
 	
 ##### delete_friend:
 
@@ -337,6 +365,14 @@ $ sudo python3 app.py
 	method: GET
 	
 	response: {valid: true, friend list: [User(username, name, info), ...]}
+	
+##### get_friendreq:
+
+	route: https://222.29.159.164:10006/get_friendreq
+	
+	method: GET
+	
+	response: {valid: true, friend req: [User(username, name, info), ...]}
 	
 ##### get_friend_tasklist:
 
