@@ -201,7 +201,7 @@ def delete_friend():
             return Validity(False, 'User '+form['friend_username']+' does not exist.').get_resp()
         form['friend_id'] = utils.get_userid(form['friend_username'])
     if not utils.validate_userid(int(form['friend_id'])) or not utils.validate_friendship(int(current_user.id), int(form['friend_id'])):
-        return Validity(False, 'User ' + form['friend_id'] + ' does not exist.').get_resp()
+        return Validity(False, 'User ' + form['friend_username'] + ' does not exist.').get_resp()
     friend = User.query.filter_by(id = int(form['friend_id'])).first()
     current_user.delete_friend(int(form['friend_id']))
     friend.delete_friend(int(current_user.id))
