@@ -191,6 +191,23 @@ def agree_friendReqs():
     db.session.commit()
     return Validity(True).get_resp()
 
+@app.route('/deny_friendReqs', methods=['POST'])
+@login_required
+def deny_friendReqs():
+    form = {k: request.form[k].strip() for k in request.form}
+    if 'friend_id' not in form:
+        assert 'friend_username' in form
+        if utils.validate_username(form['friend_username']):
+            return Validity(False, 'User '+form['friend_username']+' does not exist.').get_resp()
+        form['friend_id'] = utils.get_userid(form['friend_username'])
+    if not utils.validate_friendreqs(int(form['friend_id']), int(current_user.id)):
+        return Validity(False, 'Request does not exist.').get_resp()
+    friend = User.query.filter_by(id=int(form['friend_id'])).first()
+    friend.deny_friendReq(int(current_user.id))
+    db.session.commit()
+    return Validity(True).get_resp()
+
+
 @app.route('/delete_friend', methods=['POST'])
 @login_required
 def delete_friend():
@@ -401,20 +418,19 @@ def join_group():
     else:
         return Validity(False, 'Invalid group id').get_resp()
 
-# CAN BE DELETE
-# Quit a group
-@app.route('/quit_group', methods=['POST'])
+# rufuse to join a group
+@app.route('/deny_groupReq', methods=['POST'])
 @login_required
-def quit_group():
-    form = {k:request.form[k].strip() for k in request.form}
+def deny_groupReq():
+    form = {k: request.form[k].strip() for k in request.form}
     if utils.validate_groupid(group_id=int(form['group_id'])):
-        if utils.validate_membership(int(current_user.id), int(form['group_id'])) and not utils.validate_ownership(int(current_user.id), int(form['group_id'])):
+        if not utils.validate_groupreqs(int(current_user.id), int(form['group_id'])):
+            return Validity(False, 'Invitation does not exist.').get_resp()
+        else:
             group = Group.query.filter_by(id=int(form['group_id'])).first()
-            group.delete_member(int(current_user.id))
+            group.deny_groupReq(int(current_user.id))
             db.session.commit()
             return Validity(True).get_resp()
-        else:
-            return Validity(False, 'Can not quit the group').get_resp()
     else:
         return Validity(False, 'Invalid group id').get_resp()
 
