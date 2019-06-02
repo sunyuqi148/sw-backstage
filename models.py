@@ -196,6 +196,10 @@ class User(UserMixin, db.Model):
         self.__friends.append(friend)
         self.__friendReqs.remove(friend)
 
+    def deny_friendReq(self, friend_id):
+        friend = User.query.filter_by(id=friend_id).first()
+        self.__friendReqs.remove(friend)
+
     def delete_friend(self, friend_id):
         friend = User.query.filter_by(id=friend_id).first()
         if friend in self.__friends:
@@ -249,6 +253,10 @@ class Group(db.Model):
     def add_memberReq(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         self.__memberReqs.append(user)
+
+    def deny_groupReq(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+        self.__memberReqs.remove(user)
 
     def delete_member(self, user_id):
         user = User.query.filter_by(id=user_id).first()

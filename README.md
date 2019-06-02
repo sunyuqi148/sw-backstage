@@ -194,26 +194,6 @@ $ sudo python3 app.py
 	
 			否则valid=false, info
 
-##### join_group:
-
-	route: https://222.29.159.164:10006/join_group
-	
-	request: group_id
-	
-	response: 若加入成功，{valid: true}
-	
-			否则valid=false, info
-
-##### quit_group:
-
-	route: https://222.29.159.164:10006/quit_group
-	
-	request: group_id
-	
-	response: 若加入成功，{valid: true}
-	
-			否则valid=false, info
-			
 ##### get_grouplist:
 
 	route: https://222.29.159.164:10006/get_grouplist
@@ -249,6 +229,26 @@ $ sudo python3 app.py
 	response: 若添加成功，{valid: true}
 			
 			否则 {valid: false, info}
+			
+####  join_group:
+
+    route:https://222.29.159.164:10006/join_group
+    
+    request:group_id
+    
+    response: 若加入成功， {valid: treu}
+            
+            否则 {valid: false, info}
+            
+####  deny_groupReq:
+
+    route:https://222.29.159.164:10006/deny_groupReq
+    
+    request:group_id
+    
+    reponse: 若成功拒绝， {valid: true}
+    
+            否则 {valid: false, info}
 	
 ##### delete_member:
 
@@ -349,6 +349,16 @@ $ sudo python3 app.py
 	response: 若通过好友添加请求的操作合法， {valid: true}
 	
 			否则， {valid: false, info}
+			
+####  deny_friendReqs:
+
+    route: https://222.29.159.164:10006/deny_friendReqs
+    
+    request: friend_id | friend_username
+    
+    reponse: 若成功拒绝， {valid: true}
+    
+            否则, {valid: false, info}
 	
 ##### delete_friend:
 
