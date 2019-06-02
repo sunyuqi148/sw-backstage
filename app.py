@@ -162,7 +162,7 @@ def add_friend():
     if 'friend_id' not in form:
         assert 'friend_username' in form
         if utils.validate_username(form['friend_username']):
-            return Validaty(False, 'User ' + form['friend_username'] + ' does not exist.').get_resp()
+            return Validity(False, 'User ' + form['friend_username'] + ' does not exist.').get_resp()
         form['friend_id'] = utils.get_userid(form['friend_username'])
     if utils.validate_friendship(int(current_user.id), int(form['friend_id'])):
         return Validity(False, 'User ' + form['friend_username'] + ' has already been your friend.').get_resp()
