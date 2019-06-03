@@ -141,6 +141,7 @@ def get_friend_tasklist():
             return Validity(False, 'User '+form['friend_username']+' does not exist.').get_resp()
         friend = User.query.filter_by(username=form['friend_username']).first()
         ret = sorted([task for task in friend.get_public_tasks()], key=lambda v:v.finish_time)
+        ret = [task.get_info_map() for task in ret]
         return Validity(True, {'friend task list': ret}).get_resp()
 
 # Get group tasks of the user
