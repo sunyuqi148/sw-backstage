@@ -299,7 +299,7 @@ def update_group():
         return Validity(False, 'Invalid group id').get_resp()
 
 # Check the ownership of a group
-@app.route('/check_ownership',methods=['GET'])
+@app.route('/check_ownership',methods=['POST'])
 @login_required
 def check_ownership():
     form = {k:request.form[k].strip() for k in request.form}
