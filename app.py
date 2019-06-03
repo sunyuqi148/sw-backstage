@@ -242,7 +242,7 @@ def get_group():
 
 
 # Get group task list
-@app.route('/get_group_task', methods=['GET'])
+@app.route('/get_group_task', methods=['POST'])
 @login_required
 def get_group_task():
     form = {k:request.form[k].strip() for k in request.form}
@@ -259,7 +259,7 @@ def get_group_task():
 
 
 # Get group member list
-@app.route('/get_group_member', methods=['GET'])
+@app.route('/get_group_member', methods=['POST'])
 @login_required
 def get_group_member():
     form = {k:request.form[k].strip() for k in request.form}
