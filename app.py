@@ -168,7 +168,7 @@ def add_friend():
         return Validity(False, 'User ' + form['friend_username'] + ' has already been your friend.').get_resp()
     if utils.validate_friendreqs(int(current_user.id), int(form['friend_id'])):
         return Validity(False, 'Request already sent.').get_resp()
-    friend = User.query.filter_by(id = int(form['friend_id'])).first()
+#    friend = User.query.filter_by(id = int(form['friend_id'])).first()
     current_user.add_friendReq(int(form['friend_id']))
     # friend.add_friend(int(current_user.id))
     db.session.commit()
@@ -443,7 +443,7 @@ def add_member():
     if 'user_id' not in form:
         assert 'user_username' in form
         if utils.validate_username(form['user_username']):
-            return Validaty(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
+            return Validity(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
         form['user_id'] = utils.get_userid(form['user_username'])
     if not utils.validate_userid(int(form['user_id'])):
         return Validity(False, 'Invalid user.').get_resp()
@@ -469,7 +469,7 @@ def delete_member():
     if 'user_id' not in form:
         assert 'user_username' in form
         if utils.validate_username(form['user_username']):
-            return Validaty(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
+            return Validity(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
         form['user_id'] = utils.get_userid(form['user_username'])
     if utils.validate_groupid(group_id=int(form['group_id'])):
         if utils.validate_membership(int(form['user_id']), int(form['group_id'])) and not utils.validate_ownership(int(form['user_id']), int(form['group_id'])):
