@@ -550,7 +550,7 @@ def create_task():
     print(form)
     task = Task(owner_id=int(current_user.id),
                 title=form['title'],
-                finish_time=(datetime.datetime.now() if 'deadline' not in form else utils.trans_to_date(form['deadline'])),
+                finish_time=(datetime.datetime.now() if 'finish_time' not in form else utils.trans_to_date(form['finish_time'])),
                 status=(0 if 'status' not in form else form['status']),
                 publicity=(0 if 'publicity' not in form else form['publicity']),
                 group_id=(None if 'group_id' not in form else form['group_id']),
