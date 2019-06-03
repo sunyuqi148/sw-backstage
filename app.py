@@ -564,7 +564,7 @@ def create_task():
 @login_required
 def delete_task():
     form = {k:request.form[k].strip() for k in request.form}
-    if utils.validate_task_id(task_id=int(form['task_id'])):
+    if utils.validate_taskid(task_id=int(form['task_id'])):
         task = Task.query.filter_by(id=int(form['task_id'])).first()
         db.session.delete(task)
         db.session.commit()
