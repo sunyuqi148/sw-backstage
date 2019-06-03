@@ -164,7 +164,7 @@ $ sudo python3 app.py
 	response: {valid: true, group task list: [task(task_id, title, create_time, finish_time, status, publicity, info), ...]}
 
 
-#### 小组管理子系统
+##### 小组管理子系统
 
 ##### get_group:
 
@@ -251,7 +251,7 @@ $ sudo python3 app.py
 			
 			否则 {valid: false, info}
 			
-####  join_group(同意加入小组):
+#####  join_group(同意加入小组):
 
     route:https://222.29.159.164:10006/join_group
     
@@ -263,7 +263,7 @@ $ sudo python3 app.py
             
             否则 {valid: false, info}
             
-####  deny_groupReq:
+#####  deny_groupReq:
 
     route:https://222.29.159.164:10006/deny_groupReq
     
@@ -387,7 +387,7 @@ $ sudo python3 app.py
 	
 			否则， {valid: false, info}
 			
-####  deny_friendReqs:
+#####  deny_friendReqs:
 
     route: https://222.29.159.164:10006/deny_friendReqs
     
