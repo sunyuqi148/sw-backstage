@@ -316,7 +316,7 @@ class Task(db.Model):
         return {'task_id': self.id,
                 'title': self.__title,
                 'create_time': self.__create_time,
-                'finish_time': self.finish_time,
+                'finish_time': str(self.finish_time),
                 'status': self.__status,
                 'publicity': self.__publicity,
                 'info': self.__info}
