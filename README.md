@@ -17,6 +17,7 @@
 **子系统1**：单人使用ShareDDL的主要用况
 
 ![use case1](https://raw.githubusercontent.com/sunyuqi148/sw-backstage/master/data/image/UseCase1.jpg)
+<img src="https://raw.githubusercontent.com/sunyuqi148/sw-backstage/master/data/image/UseCase1.jpg" width="50%"/>
 
 **子系统2**：团队DDL管理用况图
 
