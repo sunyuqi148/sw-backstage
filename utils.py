@@ -94,7 +94,10 @@ def validate_task_ownership(user_id, task_id):
 # Get id of username
 def get_userid(username):
     user = User.query.filter_by(username=username).first()
-    return user.id
+    if user:
+        return user.id
+    else:
+        return None
 
 
 def trans_to_date(str_time):
