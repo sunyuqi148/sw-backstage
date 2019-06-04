@@ -145,7 +145,7 @@ class User(UserMixin, db.Model):
 
     # rets: a json string of all tasks belonging to user
     def get_tasks(self):
-        return self.__tasks
+        return [task for task in self.__tasks if task.get_publicity() != 2]
 
     # rets: a json string of public tasks belonging to user
     def get_public_tasks(self):
