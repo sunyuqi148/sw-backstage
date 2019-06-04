@@ -145,7 +145,7 @@ class User(UserMixin, db.Model):
 
     # rets: a json string of all tasks belonging to user
     def get_tasks(self):
-        return self.__tasks
+        return [task for task in self.__tasks if task.get_publicity() != 2]
 
     # rets: a json string of public tasks belonging to user
     def get_public_tasks(self):
@@ -350,8 +350,8 @@ class Task(db.Model):
     def get_info_map(self):
         return {'task_id': self.id,
                 'title': self.__title,
-                'create_time': self.__create_time,
-                'finish_time': self.finish_time,
+                'create_time': str(self.__create_time),
+                'finish_time': str(self.finish_time),
                 'status': self.__status,
                 'publicity': self.__publicity,
                 'info': self.__info}

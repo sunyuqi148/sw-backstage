@@ -141,6 +141,7 @@ def get_friend_tasklist():
             return Validity(False, 'User '+form['friend_username']+' does not exist.').get_resp()
         friend = User.query.filter_by(username=form['friend_username']).first()
         ret = sorted([task for task in friend.get_public_tasks()], key=lambda v:v.finish_time)
+        ret = [task.get_info_map() for task in ret]
         return Validity(True, {'friend task list': ret}).get_resp()
 
 # Get group tasks of the user
@@ -168,7 +169,7 @@ def add_friend():
         return Validity(False, 'User ' + form['friend_username'] + ' has already been your friend.').get_resp()
     if utils.validate_friendreqs(int(current_user.id), int(form['friend_id'])):
         return Validity(False, 'Request already sent.').get_resp()
-    friend = User.query.filter_by(id = int(form['friend_id'])).first()
+#    friend = User.query.filter_by(id = int(form['friend_id'])).first()
     current_user.add_friendReq(int(form['friend_id']))
     # friend.add_friend(int(current_user.id))
     db.session.commit()
@@ -242,7 +243,7 @@ def get_group():
 
 
 # Get group task list
-@app.route('/get_group_task', methods=['GET'])
+@app.route('/get_group_task', methods=['POST'])
 @login_required
 def get_group_task():
     form = {k:request.form[k].strip() for k in request.form}
@@ -259,7 +260,7 @@ def get_group_task():
 
 
 # Get group member list
-@app.route('/get_group_member', methods=['GET'])
+@app.route('/get_group_member', methods=['POST'])
 @login_required
 def get_group_member():
     form = {k:request.form[k].strip() for k in request.form}
@@ -280,8 +281,8 @@ def get_group_member():
 @login_required
 def update_group():
     form = {k:request.form[k].strip() for k in request.form}
-    if 'owner_id' not in form:
-        assert 'owner_username' in form
+    if 'owner_id' not in form and 'owner_username' in form:
+#assert 'owner_username' in form
         if utils.validate_username(form['owner_username']):
             return Validity(False, 'User '+form['owner_username']+' does not exist.').get_resp()
         form['owner_id'] = utils.get_userid(form['owner_username'])
@@ -299,7 +300,7 @@ def update_group():
         return Validity(False, 'Invalid group id').get_resp()
 
 # Check the ownership of a group
-@app.route('/check_ownership',methods=['GET'])
+@app.route('/check_ownership',methods=['POST'])
 @login_required
 def check_ownership():
     form = {k:request.form[k].strip() for k in request.form}
@@ -334,7 +335,7 @@ def create_group_task():
 def update_group_task():
     form = {k:request.form[k].strip() for k in request.form}
     if utils.validate_taskid(int(form['task_id'])):
-        task = Task.query.filter_by(int(form['task_id'])).first()
+        task = Task.query.filter_by(id=int(form['task_id'])).first()
         if utils.validate_ownership(int(current_user.id), int(form['group_id'])):
             task.update(owner_id=None,
                         title=(None if 'title' not in form else form['title']),
@@ -343,10 +344,12 @@ def update_group_task():
                         publicity=(None if 'publicity' not in form else int(form['publicity'])),
                         group_id=(None if 'group_id' not in form else int(form['group_id'])),
                         info=(None if 'info' not in form else form['info']))
+            db.session.commit()
             return Validity(True).get_resp()
         elif utils.validate_membership(int(current_user.id), int(form['group_id'])):
             # members can only edit the progress
             task.update(status=(None if 'status' not in form else int(form['status'])))
+            db.session.commit()
             return Validity(True).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
@@ -443,7 +446,7 @@ def add_member():
     if 'user_id' not in form:
         assert 'user_username' in form
         if utils.validate_username(form['user_username']):
-            return Validaty(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
+            return Validity(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
         form['user_id'] = utils.get_userid(form['user_username'])
     if not utils.validate_userid(int(form['user_id'])):
         return Validity(False, 'Invalid user.').get_resp()
@@ -469,7 +472,7 @@ def delete_member():
     if 'user_id' not in form:
         assert 'user_username' in form
         if utils.validate_username(form['user_username']):
-            return Validaty(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
+            return Validity(False, 'User ' + form['user_username'] + ' does not exist.').get_resp()
         form['user_id'] = utils.get_userid(form['user_username'])
     if utils.validate_groupid(group_id=int(form['group_id'])):
         if utils.validate_membership(int(form['user_id']), int(form['group_id'])) and not utils.validate_ownership(int(form['user_id']), int(form['group_id'])):
@@ -550,7 +553,7 @@ def create_task():
     print(form)
     task = Task(owner_id=int(current_user.id),
                 title=form['title'],
-                finish_time=(datetime.datetime.now() if 'deadline' not in form else utils.trans_to_date(form['deadline'])),
+                finish_time=(datetime.datetime.now() if 'finish_time' not in form else utils.trans_to_date(form['finish_time'])),
                 status=(0 if 'status' not in form else form['status']),
                 publicity=(0 if 'publicity' not in form else form['publicity']),
                 group_id=(None if 'group_id' not in form else form['group_id']),
@@ -564,7 +567,7 @@ def create_task():
 @login_required
 def delete_task():
     form = {k:request.form[k].strip() for k in request.form}
-    if Task.validate_task_id(task_id=int(form['task_id'])):
+    if utils.validate_taskid(task_id=int(form['task_id'])):
         task = Task.query.filter_by(id=int(form['task_id'])).first()
         db.session.delete(task)
         db.session.commit()
