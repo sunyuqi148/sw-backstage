@@ -344,10 +344,12 @@ def update_group_task():
                         publicity=(None if 'publicity' not in form else int(form['publicity'])),
                         group_id=(None if 'group_id' not in form else int(form['group_id'])),
                         info=(None if 'info' not in form else form['info']))
+            db.session.commit()
             return Validity(True).get_resp()
         elif utils.validate_membership(int(current_user.id), int(form['group_id'])):
             # members can only edit the progress
             task.update(status=(None if 'status' not in form else int(form['status'])))
+            db.session.commit()
             return Validity(True).get_resp()
         else:
             return Validity(False, 'No access').get_resp()
