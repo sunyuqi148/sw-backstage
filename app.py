@@ -335,7 +335,7 @@ def create_group_task():
 def update_group_task():
     form = {k:request.form[k].strip() for k in request.form}
     if utils.validate_taskid(int(form['task_id'])):
-        task = Task.query.filter_by(int(form['task_id'])).first()
+        task = Task.query.filter_by(id=int(form['task_id'])).first()
         if utils.validate_ownership(int(current_user.id), int(form['group_id'])):
             task.update(owner_id=None,
                         title=(None if 'title' not in form else form['title']),
