@@ -281,8 +281,8 @@ def get_group_member():
 @login_required
 def update_group():
     form = {k:request.form[k].strip() for k in request.form}
-    if 'owner_id' not in form:
-        assert 'owner_username' in form
+    if 'owner_id' not in form and 'owner_username' in form:
+#assert 'owner_username' in form
         if utils.validate_username(form['owner_username']):
             return Validity(False, 'User '+form['owner_username']+' does not exist.').get_resp()
         form['owner_id'] = utils.get_userid(form['owner_username'])
